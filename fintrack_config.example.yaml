@@ -1,0 +1,359 @@
+# FinTrack Configuration File
+# Location: ~/.config/fintrack/config.yaml
+# Copy this file and customize for your environment
+
+# ============================================================================
+# Database Configuration
+# ============================================================================
+database:
+  # Full connection URL (preferred)
+  url: "postgresql://fintrack_user:password@localhost:5432/fintrack?sslmode=disable"
+
+  # Or use individual components (alternative to url)
+  # host: "localhost"
+  # port: 5432
+  # database: "fintrack"
+  # user: "fintrack_user"
+  # password: "${FINTRACK_DB_PASSWORD}"  # Reference environment variable
+  # sslmode: "disable"  # Options: disable, require, verify-ca, verify-full
+
+  # Connection pool settings
+  max_connections: 10
+  max_idle_connections: 2
+  connection_max_lifetime: "1h"
+
+# ============================================================================
+# Default Settings
+# ============================================================================
+defaults:
+  # Default account for quick transactions (no --account flag needed)
+  account: "Chase Checking"
+
+  # Default currency code (ISO 4217)
+  currency: "USD"
+
+  # Date format for display (Go time format)
+  # 2006-01-02 = YYYY-MM-DD
+  # 01/02/2006 = MM/DD/YYYY
+  # 02-Jan-2006 = DD-Mon-YYYY
+  date_format: "2006-01-02"
+
+  # Timezone for display (IANA Time Zone Database)
+  timezone: "America/New_York"
+
+# ============================================================================
+# Budget Alert Settings
+# ============================================================================
+alerts:
+  # Enable/disable budget alerts
+  enabled: true
+
+  # Default alert threshold (0.0-1.0)
+  # 0.80 = alert when 80% of budget spent
+  threshold: 0.80
+
+  # Delivery methods
+  methods:
+    - terminal      # Show on next fintrack command (always enabled)
+    # - desktop     # Desktop notification (future)
+    # - email       # Email notification (future)
+
+  # Low balance warnings
+  low_balance:
+    enabled: true
+    # Alert when account balance falls below this amount
+    thresholds:
+      checking: 500
+      savings: 1000
+
+# ============================================================================
+# Recurring Transaction Settings
+# ============================================================================
+recurring:
+  # Auto-generate transactions without confirmation
+  # false = require `fintrack schedule generate --confirm`
+  # true = automatically create transactions
+  auto_generate: false
+
+  # Create transactions N days before due date
+  generate_days_ahead: 3
+
+  # Default reminder days before due date
+  reminder_days_before: 3
+
+# ============================================================================
+# Cash Flow Projection Settings
+# ============================================================================
+projection:
+  # Default projection period (days)
+  default_days: 90
+
+  # Minimum confidence level to show projections (0.0-1.0)
+  confidence_threshold: 0.70
+
+  # Default scenario type: conservative, moderate, optimistic
+  scenario: "moderate"
+
+  # Historical data window for calculations
+  historical_window_days: 90
+
+  # Scenario parameters (percentiles of historical spending)
+  scenarios:
+    conservative: 0.75  # 75th percentile (higher spending)
+    moderate: 0.50      # 50th percentile (median)
+    optimistic: 0.25    # 25th percentile (lower spending)
+
+# ============================================================================
+# Import Settings
+# ============================================================================
+import:
+  # Check for duplicate imports within this window
+  duplicate_window_days: 30
+
+  # Auto-categorize transactions using ML (future feature)
+  auto_categorize: false
+
+  # Default CSV format if not specified
+  default_format: "generic"
+
+  # Maximum file size for imports (MB)
+  max_file_size_mb: 50
+
+  # Skip transactions before this date (ignore old data)
+  # skip_before_date: "2024-01-01"
+
+# ============================================================================
+# Output Preferences
+# ============================================================================
+output:
+  # Default format: table, json, csv
+  default_format: "table"
+
+  # Enable colored output
+  color: true
+
+  # Use Unicode symbols (boxes, arrows, emojis)
+  unicode: true
+
+  # Table styling
+  table:
+    # Border style: ascii, light, bold, double, rounded
+    border_style: "rounded"
+
+    # Show grid lines
+    grid: true
+
+    # Compact mode (less spacing)
+    compact: false
+
+  # Number formatting
+  numbers:
+    # Decimal places for amounts
+    decimal_places: 2
+
+    # Thousands separator
+    thousands_separator: ","
+
+    # Currency symbol position: left, right
+    currency_position: "left"
+
+    # Show negative numbers with parentheses instead of minus sign
+    # -$100.00 vs ($100.00)
+    negative_parentheses: false
+
+# ============================================================================
+# Reminder Settings
+# ============================================================================
+reminders:
+  # Default reminder time for bills (HH:MM)
+  default_time: "09:00"
+
+  # Show reminders on every command invocation
+  show_on_startup: true
+
+  # Only show high-priority reminders on startup
+  startup_priority_filter: "normal"  # low, normal, high, urgent
+
+  # Auto-dismiss reminders after N days past due date
+  auto_dismiss_after_days: 30
+
+# ============================================================================
+# Category Settings
+# ============================================================================
+categories:
+  # Allow creating new categories from commands
+  allow_create: true
+
+  # Fuzzy matching for category names
+  fuzzy_match: true
+
+  # Show category hierarchy in reports
+  show_hierarchy: true
+
+# ============================================================================
+# Report Settings
+# ============================================================================
+reports:
+  # Default report period
+  default_period: "month"  # week, month, quarter, year
+
+  # Include chart visualizations (ASCII art)
+  show_charts: true
+
+  # Chart width (characters)
+  chart_width: 60
+
+  # Sort order for category reports
+  category_sort: "amount"  # name, amount, count
+
+  # Show subcategories separately or rolled up
+  subcategory_rollup: false
+
+# ============================================================================
+# Calendar Settings
+# ============================================================================
+calendar:
+  # Start week on Sunday (0) or Monday (1)
+  week_start: 0
+
+  # Show amount on calendar events
+  show_amounts: true
+
+  # Number of upcoming events to show in list view
+  upcoming_count: 10
+
+  # Event symbols (can customize emojis)
+  symbols:
+    income: "💰"
+    expense: "💳"
+    transfer: "🔄"
+    bill: "📄"
+    reminder: "📅"
+    budget_alert: "⚠️"
+
+# ============================================================================
+# Advanced Settings
+# ============================================================================
+advanced:
+  # Enable debug logging
+  debug: false
+
+  # Log file location
+  log_file: "~/.config/fintrack/fintrack.log"
+
+  # Log level: debug, info, warn, error
+  log_level: "info"
+
+  # Enable query logging (slow queries)
+  query_logging: false
+
+  # Query performance threshold (ms)
+  slow_query_threshold_ms: 100
+
+  # Enable database migrations on startup
+  auto_migrate: true
+
+  # Refresh materialized views on startup
+  auto_refresh_views: false
+
+# ============================================================================
+# Security Settings
+# ============================================================================
+security:
+  # Encrypt sensitive data in database (future)
+  encryption_enabled: false
+
+  # Require password for delete operations
+  confirm_deletes: true
+
+  # Mask account numbers in output (show last 4 only)
+  mask_account_numbers: true
+
+# ============================================================================
+# Experimental Features
+# ============================================================================
+experimental:
+  # Enable TUI mode (interactive terminal UI)
+  tui_enabled: false
+
+  # Enable Plaid integration (requires API key)
+  plaid_enabled: false
+  # plaid_client_id: "${PLAID_CLIENT_ID}"
+  # plaid_secret: "${PLAID_SECRET}"
+  # plaid_environment: "sandbox"  # sandbox, development, production
+
+  # Enable AI-powered categorization
+  ai_categorization: false
+  # ai_model: "local"  # local, openai, anthropic
+  # ai_api_key: "${AI_API_KEY}"
+
+# ============================================================================
+# CSV Format Mappings
+# ============================================================================
+# Define custom CSV formats for different banks
+csv_formats:
+  # Generic format (default)
+  generic:
+    columns:
+      date: "date"
+      amount: "amount"
+      payee: "payee"
+      category: "category"
+      description: "description"
+    date_format: "2006-01-02"
+    skip_rows: 0
+
+  # Chase bank format
+  chase:
+    columns:
+      date: "Posting Date"
+      amount: "Amount"
+      payee: "Description"
+      category: "Type"
+    date_format: "01/02/2006"
+    amount_sign: "inverse"  # Chase uses positive for debits
+    skip_rows: 1
+
+  # Bank of America format
+  bofa:
+    columns:
+      date: "Date"
+      amount: "Amount"
+      payee: "Description"
+    date_format: "01/02/2006"
+    skip_rows: 1
+
+  # American Express format
+  amex:
+    columns:
+      date: "Date"
+      amount: "Amount"
+      payee: "Description"
+    date_format: "01/02/06"
+    skip_rows: 1
+
+  # Mint export format
+  mint:
+    columns:
+      date: "Date"
+      amount: "Amount"
+      payee: "Description"
+      category: "Category"
+      account: "Account Name"
+      type: "Transaction Type"
+    date_format: "01/02/2006"
+    skip_rows: 1
+
+  # YNAB export format
+  ynab:
+    columns:
+      date: "Date"
+      amount: "Outflow"
+      amount_inflow: "Inflow"  # Separate inflow column
+      payee: "Payee"
+      category: "Category"
+      memo: "Memo"
+    date_format: "01/02/2006"
+    skip_rows: 1
+
+# End of configuration
