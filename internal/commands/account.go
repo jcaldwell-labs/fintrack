@@ -151,7 +151,7 @@ func newAccountAddCmd() *cobra.Command {
 	cmd.Flags().StringVar(&institution, "institution", "", "Financial institution name")
 	cmd.Flags().StringVar(&notes, "notes", "", "Additional notes")
 
-	cmd.MarkFlagRequired("type")
+	_ = cmd.MarkFlagRequired("type")
 
 	return cmd
 }

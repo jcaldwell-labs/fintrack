@@ -33,8 +33,8 @@ func (suite *AccountRepositoryTestSuite) SetupSuite() {
 // SetupTest runs before each test
 func (suite *AccountRepositoryTestSuite) SetupTest() {
 	// Clean database before each test by dropping and recreating table
-	suite.db.Migrator().DropTable(&models.Account{})
-	suite.db.AutoMigrate(&models.Account{})
+	_ = suite.db.Migrator().DropTable(&models.Account{})
+	_ = suite.db.AutoMigrate(&models.Account{})
 }
 
 // TestCreateAccount tests account creation
