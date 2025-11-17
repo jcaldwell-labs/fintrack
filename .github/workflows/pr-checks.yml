@@ -1,0 +1,125 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-validation:
+    name: PR Validation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history for better diff analysis
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Check for sensitive data
+      run: |
+        echo "Checking for potentially sensitive data..."
+
+        # Check for common password patterns
+        if git diff origin/${{ github.base_ref }}...HEAD | grep -iE '(password|secret|api[_-]?key|token).*=.*["\x27][^"\x27]{8,}'; then
+          echo "❌ Potential credentials found in diff"
+          exit 1
+        fi
+
+        # Check for database URLs with credentials
+        if git diff origin/${{ github.base_ref }}...HEAD | grep -E 'postgresql://[^:]+:[^@]+@'; then
+          echo "❌ Database URL with credentials found"
+          exit 1
+        fi
+
+        echo "✅ No sensitive data detected"
+
+    - name: Check for TODO/FIXME
+      run: |
+        todos=$(git diff origin/${{ github.base_ref }}...HEAD | grep -E '^\+.*\b(TODO|FIXME|XXX|HACK)\b' || true)
+        if [ -n "$todos" ]; then
+          echo "⚠️  New TODOs found:"
+          echo "$todos"
+          echo "Please address TODOs or create issues for them"
+        fi
+
+    - name: Run tests on changed packages
+      run: |
+        # Get list of changed packages
+        changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep '\.go$' || true)
+
+        if [ -z "$changed_files" ]; then
+          echo "No Go files changed"
+          exit 0
+        fi
+
+        # Extract unique package paths
+        packages=$(echo "$changed_files" | xargs -I {} dirname {} | sort -u | sed 's|^|./|')
+
+        echo "Running tests for changed packages:"
+        echo "$packages"
+
+        for pkg in $packages; do
+          echo "Testing $pkg..."
+          go test -v -race "$pkg"
+        done
+
+    - name: Check test coverage delta
+      run: |
+        # Get coverage before PR
+        git checkout origin/${{ github.base_ref }}
+        go test -coverprofile=coverage_base.out ./... 2>/dev/null || echo "0.0" > coverage_base.txt
+        base_coverage=$(go tool cover -func=coverage_base.out 2>/dev/null | grep total | awk '{print $3}' | sed 's/%//' || echo "0.0")
+
+        # Get coverage after PR
+        git checkout ${{ github.sha }}
+        go test -coverprofile=coverage_pr.out ./... 2>/dev/null || echo "0.0" > coverage_pr.txt
+        pr_coverage=$(go tool cover -func=coverage_pr.out 2>/dev/null | grep total | awk '{print $3}' | sed 's/%//' || echo "0.0")
+
+        # Calculate delta
+        delta=$(echo "$pr_coverage - $base_coverage" | bc)
+
+        echo "Base coverage: $base_coverage%"
+        echo "PR coverage: $pr_coverage%"
+        echo "Delta: $delta%"
+
+        # Fail if coverage decreases by more than 1%
+        if (( $(echo "$delta < -1.0" | bc -l) )); then
+          echo "❌ Coverage decreased by more than 1%"
+          exit 1
+        fi
+
+        echo "✅ Coverage check passed"
+
+  build-test:
+    name: Build Test
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Build
+      run: go build -v ./cmd/fintrack/
+
+    - name: Test binary execution
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          ./fintrack.exe --version
+        else
+          ./fintrack --version
+        fi
+      shell: bash

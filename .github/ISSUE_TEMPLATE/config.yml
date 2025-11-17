@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 💬 Discussion Forum
+    url: https://github.com/yourusername/fintrack/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: 🔒 Security Vulnerability
+    url: https://github.com/yourusername/fintrack/security/advisories/new
+    about: Report security vulnerabilities privately
+  - name: 📚 Documentation
+    url: https://github.com/yourusername/fintrack/blob/main/README.md
+    about: Read the documentation and user guide

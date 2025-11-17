@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/fintrack/fintrack/internal/db"
 	"github.com/fintrack/fintrack/internal/db/repositories"

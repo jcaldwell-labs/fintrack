@@ -1,0 +1,150 @@
+name: Test & Coverage
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test (Go ${{ matrix.go-version }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        go-version: ['1.21', '1.22']
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: fintrack_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Install dependencies
+      run: |
+        go mod download
+        go mod verify
+
+    - name: Run go fmt
+      run: |
+        fmt_output=$(go fmt ./...)
+        if [ -n "$fmt_output" ]; then
+          echo "The following files need formatting:"
+          echo "$fmt_output"
+          exit 1
+        fi
+
+    - name: Run go vet
+      run: go vet ./...
+
+    - name: Run unit tests
+      run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+
+    - name: Run integration tests
+      env:
+        FINTRACK_DB_URL: postgresql://test_user:test_password@localhost:5432/fintrack_test?sslmode=disable
+      run: |
+        if [ -d "tests/integration" ] && [ "$(ls -A tests/integration/*.go 2>/dev/null)" ]; then
+          go test -v -tags=integration ./tests/integration/...
+        else
+          echo "No integration tests found, skipping..."
+        fi
+
+    - name: Calculate coverage
+      run: |
+        total_coverage=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+        echo "Total coverage: $total_coverage%"
+        echo "COVERAGE=$total_coverage" >> $GITHUB_ENV
+
+    - name: Check coverage threshold
+      run: |
+        threshold=60.0
+        if (( $(echo "$COVERAGE < $threshold" | bc -l) )); then
+          echo "❌ Coverage $COVERAGE% is below $threshold% threshold"
+          exit 1
+        else
+          echo "✅ Coverage $COVERAGE% meets $threshold% threshold"
+        fi
+
+    - name: Generate coverage HTML report
+      if: matrix.go-version == '1.21'
+      run: go tool cover -html=coverage.out -o coverage.html
+
+    - name: Upload coverage to Codecov
+      if: matrix.go-version == '1.21'
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./coverage.out
+        flags: unittests
+        name: codecov-fintrack
+
+    - name: Upload coverage report
+      if: matrix.go-version == '1.21'
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: coverage.html
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Run golangci-lint
+      uses: golangci/golangci-lint-action@v3
+      with:
+        version: latest
+        args: --timeout=5m
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Gosec Security Scanner
+      uses: securego/gosec@master
+      with:
+        args: '-no-fail -fmt sarif -out results.sarif ./...'
+
+    - name: Upload SARIF file
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: results.sarif

@@ -1,0 +1,41 @@
+# CODEOWNERS file for FinTrack
+#
+# This file defines who should review PRs for different parts of the codebase.
+# GitHub will automatically request reviews from these users/teams.
+#
+# Format: <pattern> <owner1> <owner2> ...
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything in the repo
+# These owners will be requested for review unless a more specific rule below applies
+* @yourusername
+
+# Database schema and migrations
+/migrations/ @yourusername
+internal/db/ @yourusername
+internal/models/ @yourusername
+
+# CLI commands and interfaces
+internal/commands/ @yourusername
+cmd/fintrack/ @yourusername
+
+# Configuration management
+internal/config/ @yourusername
+*.yaml @yourusername
+*.yml @yourusername
+
+# Documentation
+*.md @yourusername
+/docs/ @yourusername
+
+# CI/CD and workflows
+/.github/ @yourusername
+
+# Testing
+/tests/ @yourusername
+**/*_test.go @yourusername
+
+# Security-sensitive files
+SECURITY.md @yourusername
+go.mod @yourusername
+go.sum @yourusername

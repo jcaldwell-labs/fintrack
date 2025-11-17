@@ -6,6 +6,7 @@ import (
 
 	"github.com/fintrack/fintrack/internal/commands"
 	"github.com/fintrack/fintrack/internal/config"
+	"github.com/fintrack/fintrack/internal/db"
 	"github.com/spf13/cobra"
 )
 
@@ -36,6 +37,10 @@ Unix philosophy: Composable commands, text output, scriptable.`,
 			// Initialize configuration
 			if err := config.Init(cfgFile); err != nil {
 				return fmt.Errorf("failed to initialize config: %w", err)
+			}
+			// Initialize database connection
+			if err := db.Init(); err != nil {
+				return fmt.Errorf("failed to initialize database: %w", err)
 			}
 			return nil
 		},

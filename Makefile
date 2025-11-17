@@ -85,21 +85,92 @@ build-windows:
 	@mkdir -p $(BUILD_DIR)
 	GOOS=windows GOARCH=amd64 $(GO) build -o $(BUILD_DIR)/$(BINARY_NAME)-windows-amd64.exe ./cmd/fintrack/
 
+# Run tests with race detection
+test-race:
+	@echo "Running tests with race detector..."
+	$(GO) test -race -v ./...
+
+# Run only fast unit tests
+test-unit:
+	@echo "Running unit tests..."
+	$(GO) test -v -short ./...
+
+# Run only integration tests
+test-integration:
+	@echo "Running integration tests..."
+	@if [ -d "tests/integration" ] && [ "$$(ls -A tests/integration/*.go 2>/dev/null)" ]; then \
+		$(GO) test -v -tags=integration ./tests/integration/...; \
+	else \
+		echo "No integration tests found"; \
+	fi
+
+# Watch mode - re-run tests on file changes
+test-watch:
+	@echo "Watching for changes..."
+	@which entr > /dev/null || (echo "Error: 'entr' not installed. Install with: apt-get install entr" && exit 1)
+	@find . -name "*.go" | entr -c make test
+
+# Run benchmarks
+benchmark:
+	@echo "Running benchmarks..."
+	$(GO) test -bench=. -benchmem ./...
+
+# Check if coverage meets threshold
+test-coverage-check:
+	@echo "Checking coverage threshold..."
+	@$(GO) test -cover ./... > /tmp/coverage.txt 2>&1
+	@coverage=$$(grep -oP '\d+\.\d+(?=% of statements)' /tmp/coverage.txt | head -1); \
+	if [ -z "$$coverage" ]; then \
+		echo "⚠️  No coverage data available"; \
+		exit 0; \
+	fi; \
+	echo "Current coverage: $$coverage%"; \
+	if (( $$(echo "$$coverage < 60.0" | bc -l) )); then \
+		echo "❌ Coverage $$coverage% is below 60% threshold"; \
+		exit 1; \
+	else \
+		echo "✅ Coverage $$coverage% meets threshold"; \
+	fi
+
+# Run all quality checks (tests, fmt, lint, coverage)
+quality:
+	@echo "Running quality checks..."
+	@make fmt
+	@make lint
+	@make test-race
+	@make test-coverage-check
+
 # Help
 help:
 	@echo "FinTrack - Personal Finance Tracking CLI"
 	@echo ""
-	@echo "Available targets:"
+	@echo "Build targets:"
 	@echo "  build         - Build the application"
-	@echo "  test          - Run tests"
-	@echo "  test-coverage - Run tests with coverage report"
-	@echo "  clean         - Clean build artifacts"
-	@echo "  run           - Build and run the application"
+	@echo "  build-all     - Build for all platforms"
 	@echo "  install       - Install to /usr/local/bin"
+	@echo "  clean         - Clean build artifacts"
+	@echo ""
+	@echo "Development targets:"
+	@echo "  run           - Build and run the application"
 	@echo "  dev           - Run with live reload (requires air)"
+	@echo ""
+	@echo "Testing targets:"
+	@echo "  test          - Run all tests"
+	@echo "  test-race     - Run tests with race detector"
+	@echo "  test-unit     - Run only unit tests"
+	@echo "  test-integration - Run only integration tests"
+	@echo "  test-coverage - Run tests with coverage report"
+	@echo "  test-coverage-check - Check if coverage meets 60% threshold"
+	@echo "  test-watch    - Watch and re-run tests on changes"
+	@echo "  benchmark     - Run performance benchmarks"
+	@echo ""
+	@echo "Code quality targets:"
 	@echo "  fmt           - Format code"
 	@echo "  lint          - Lint code (requires golangci-lint)"
+	@echo "  quality       - Run all quality checks"
+	@echo ""
+	@echo "Dependency targets:"
 	@echo "  deps          - Download dependencies"
 	@echo "  verify        - Verify dependencies"
-	@echo "  build-all     - Build for all platforms"
+	@echo ""
 	@echo "  help          - Show this help message"
