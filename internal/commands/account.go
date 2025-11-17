@@ -78,11 +78,11 @@ func newAccountListCmd() *cobra.Command {
 
 func newAccountAddCmd() *cobra.Command {
 	var (
-		accountType   string
-		balance       float64
-		currency      string
-		institution   string
-		notes         string
+		accountType string
+		balance     float64
+		currency    string
+		institution string
+		notes       string
 	)
 
 	cmd := &cobra.Command{

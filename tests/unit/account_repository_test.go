@@ -227,8 +227,8 @@ func (suite *AccountRepositoryTestSuite) TestDuplicateAccountNames() {
 	assert.Error(suite.T(), err)
 	assert.True(suite.T(),
 		strings.Contains(strings.ToLower(err.Error()), "duplicate") ||
-		strings.Contains(strings.ToLower(err.Error()), "unique") ||
-		strings.Contains(strings.ToLower(err.Error()), "constraint"),
+			strings.Contains(strings.ToLower(err.Error()), "unique") ||
+			strings.Contains(strings.ToLower(err.Error()), "constraint"),
 		"Expected unique constraint error, got: %v", err)
 }
 
