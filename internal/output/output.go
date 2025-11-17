@@ -99,7 +99,7 @@ func NewTable(headers ...string) *Table {
 		Headers: headers,
 		Rows:    [][]string{},
 		writer:  os.Stdout,
-}
+	}
 }
 
 // AddRow adds a row to the table
