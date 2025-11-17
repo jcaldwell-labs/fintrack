@@ -1,6 +1,7 @@
 package unit
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/fintrack/fintrack/internal/models"
@@ -31,8 +32,9 @@ func (suite *AccountRepositoryTestSuite) SetupSuite() {
 
 // SetupTest runs before each test
 func (suite *AccountRepositoryTestSuite) SetupTest() {
-	// Clean database before each test using GORM
-	suite.db.Unscoped().Where("1 = 1").Delete(&models.Account{})
+	// Clean database before each test by dropping and recreating table
+	suite.db.Migrator().DropTable(&models.Account{})
+	suite.db.AutoMigrate(&models.Account{})
 }
 
 // TestCreateAccount tests account creation
@@ -79,18 +81,19 @@ func (suite *AccountRepositoryTestSuite) TestGetAccountByID() {
 
 // TestListAccounts tests listing all accounts
 func (suite *AccountRepositoryTestSuite) TestListAccounts() {
-	// Given
+	// Given - create test accounts (all active initially due to GORM default:true)
 	accounts := []models.Account{
-		{Name: "Checking", Type: models.AccountTypeChecking, Currency: "USD", IsActive: true},
-		{Name: "Savings", Type: models.AccountTypeSavings, Currency: "USD", IsActive: true},
-		{Name: "Credit", Type: models.AccountTypeCredit, Currency: "USD", IsActive: true}, // Temporarily set to true
+		{Name: "Checking", Type: models.AccountTypeChecking, Currency: "USD"},
+		{Name: "Savings", Type: models.AccountTypeSavings, Currency: "USD"},
+		{Name: "Credit", Type: models.AccountTypeCredit, Currency: "USD"},
 	}
+
 	for i := range accounts {
 		suite.db.Create(&accounts[i])
 	}
 
-	// Now explicitly set the Credit account to inactive
-	suite.db.Model(&models.Account{}).Where("name = ?", "Credit").Update("is_active", false)
+	// Now set Credit account to inactive using raw SQL to bypass GORM defaults
+	suite.db.Exec("UPDATE accounts SET is_active = ? WHERE name = ?", false, "Credit")
 
 	// When - get all accounts
 	var allAccounts []models.Account
@@ -107,6 +110,20 @@ func (suite *AccountRepositoryTestSuite) TestListAccounts() {
 	// Then
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), 2, len(activeAccounts))
+	for _, acc := range activeAccounts {
+		assert.True(suite.T(), acc.IsActive)
+	}
+
+	// When - get only inactive accounts
+	var inactiveAccounts []models.Account
+	err = suite.db.Where("is_active = ?", false).Find(&inactiveAccounts).Error
+
+	// Then
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), 1, len(inactiveAccounts))
+	if len(inactiveAccounts) > 0 {
+		assert.Equal(suite.T(), "Credit", inactiveAccounts[0].Name)
+	}
 }
 
 // TestUpdateAccount tests account updates
@@ -185,31 +202,34 @@ func (suite *AccountRepositoryTestSuite) TestAccountTypes() {
 	}
 }
 
-// TestDuplicateAccountNames tests that duplicate active account names can exist
-// (The actual uniqueness constraint is enforced at application level, not DB level in this test)
+// TestDuplicateAccountNames tests that duplicate account names are rejected by database constraint
 func (suite *AccountRepositoryTestSuite) TestDuplicateAccountNames() {
-	// Given
+	// Given - create first account
 	account1 := &models.Account{
-		Name:     "Duplicate Name",
+		Name:     "Duplicate Account",
 		Type:     models.AccountTypeChecking,
+		Currency: "USD",
 		IsActive: true,
 	}
-	suite.db.Create(account1)
+	err := suite.db.Create(account1).Error
+	assert.NoError(suite.T(), err)
 
-	// When - try to create another account with same name (active)
+	// When - try to create account with same name
 	account2 := &models.Account{
-		Name:     "Duplicate Name",
+		Name:     "Duplicate Account",
 		Type:     models.AccountTypeSavings,
+		Currency: "USD",
 		IsActive: true,
 	}
+	err = suite.db.Create(account2).Error
 
-	// In production, this would be prevented by application logic
-	// For now, this test just documents the expected behavior
-	err := suite.db.Create(account2).Error
-
-	// The database allows it, but application layer should prevent it
-	// This test serves as documentation of the requirement
-	assert.NoError(suite.T(), err) // SQLite allows it
+	// Then - should fail with unique constraint violation
+	assert.Error(suite.T(), err)
+	assert.True(suite.T(),
+		strings.Contains(strings.ToLower(err.Error()), "duplicate") ||
+		strings.Contains(strings.ToLower(err.Error()), "unique") ||
+		strings.Contains(strings.ToLower(err.Error()), "constraint"),
+		"Expected unique constraint error, got: %v", err)
 }
 
 // Run the test suite
