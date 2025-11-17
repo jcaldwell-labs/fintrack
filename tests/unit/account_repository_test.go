@@ -31,8 +31,8 @@ func (suite *AccountRepositoryTestSuite) SetupSuite() {
 
 // SetupTest runs before each test
 func (suite *AccountRepositoryTestSuite) SetupTest() {
-	// Clean database before each test
-	suite.db.Exec("DELETE FROM accounts")
+	// Clean database before each test using GORM
+	suite.db.Unscoped().Where("1 = 1").Delete(&models.Account{})
 }
 
 // TestCreateAccount tests account creation
@@ -81,13 +81,16 @@ func (suite *AccountRepositoryTestSuite) TestGetAccountByID() {
 func (suite *AccountRepositoryTestSuite) TestListAccounts() {
 	// Given
 	accounts := []models.Account{
-		{Name: "Checking", Type: models.AccountTypeChecking, IsActive: true},
-		{Name: "Savings", Type: models.AccountTypeSavings, IsActive: true},
-		{Name: "Credit", Type: models.AccountTypeCredit, IsActive: false},
+		{Name: "Checking", Type: models.AccountTypeChecking, Currency: "USD", IsActive: true},
+		{Name: "Savings", Type: models.AccountTypeSavings, Currency: "USD", IsActive: true},
+		{Name: "Credit", Type: models.AccountTypeCredit, Currency: "USD", IsActive: true}, // Temporarily set to true
 	}
 	for i := range accounts {
 		suite.db.Create(&accounts[i])
 	}
+
+	// Now explicitly set the Credit account to inactive
+	suite.db.Model(&models.Account{}).Where("name = ?", "Credit").Update("is_active", false)
 
 	// When - get all accounts
 	var allAccounts []models.Account

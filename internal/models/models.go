@@ -10,7 +10,7 @@ import (
 // Account represents a financial account
 type Account struct {
 	ID                 uint      `gorm:"primaryKey" json:"id"`
-	Name               string    `gorm:"not null;uniqueIndex:idx_accounts_name_active" json:"name"`
+	Name               string    `gorm:"not null;index" json:"name"`
 	Type               string    `gorm:"not null;index" json:"type"` // checking, savings, credit, cash, investment, loan
 	Currency           string    `gorm:"default:USD" json:"currency"`
 	InitialBalance     float64   `gorm:"default:0" json:"initial_balance"`
