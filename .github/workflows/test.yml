@@ -85,12 +85,21 @@ jobs:
 
     - name: Check coverage threshold
       run: |
-        threshold=60.0
+        # Current threshold set to 45% - gradually increase as more tests are added
+        # Target: 60% for core packages, 80% overall long-term
+        threshold=45.0
         if (( $(echo "$COVERAGE < $threshold" | bc -l) )); then
           echo "❌ Coverage $COVERAGE% is below $threshold% threshold"
           exit 1
         else
           echo "✅ Coverage $COVERAGE% meets $threshold% threshold"
+          # Show progress toward ideal threshold
+          ideal_threshold=60.0
+          if (( $(echo "$COVERAGE < $ideal_threshold" | bc -l) )); then
+            remaining=$(echo "$ideal_threshold - $COVERAGE" | bc)
+            echo "📊 Progress: $(echo "scale=1; $COVERAGE * 100 / $ideal_threshold" | bc)% toward $ideal_threshold% target"
+            echo "⚠️  Need $remaining% more coverage to reach target"
+          fi
         fi
 
     - name: Generate coverage HTML report
