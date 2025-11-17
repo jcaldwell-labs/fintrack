@@ -1,6 +1,7 @@
 package unit
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/fintrack/fintrack/internal/models"
@@ -31,10 +32,9 @@ func (suite *AccountRepositoryTestSuite) SetupSuite() {
 
 // SetupTest runs before each test
 func (suite *AccountRepositoryTestSuite) SetupTest() {
-	// Clean database before each test
-	suite.db.Exec("DELETE FROM accounts")
-	// Reset auto-increment counter for SQLite
-	suite.db.Exec("DELETE FROM sqlite_sequence WHERE name='accounts'")
+	// Clean database before each test by dropping and recreating table
+	_ = suite.db.Migrator().DropTable(&models.Account{})
+	_ = suite.db.AutoMigrate(&models.Account{})
 }
 
 // TestCreateAccount tests account creation
@@ -81,35 +81,49 @@ func (suite *AccountRepositoryTestSuite) TestGetAccountByID() {
 
 // TestListAccounts tests listing all accounts
 func (suite *AccountRepositoryTestSuite) TestListAccounts() {
-	// Create active accounts
-	activeAccounts := []models.Account{
-		{Name: "ListTest_Checking", Type: models.AccountTypeChecking, Currency: "USD", IsActive: true},
-		{Name: "ListTest_Savings", Type: models.AccountTypeSavings, Currency: "USD", IsActive: true},
-	}
-	for i := range activeAccounts {
-		err := suite.db.Create(&activeAccounts[i]).Error
-		assert.NoError(suite.T(), err)
+	// Given - create test accounts (all active initially due to GORM default:true)
+	accounts := []models.Account{
+		{Name: "Checking", Type: models.AccountTypeChecking, Currency: "USD"},
+		{Name: "Savings", Type: models.AccountTypeSavings, Currency: "USD"},
+		{Name: "Credit", Type: models.AccountTypeCredit, Currency: "USD"},
 	}
 
-	// Create inactive account using raw SQL to bypass GORM defaults
-	suite.db.Exec("INSERT INTO accounts (name, type, currency, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-		"ListTest_Credit", models.AccountTypeCredit, "USD", false)
+	for i := range accounts {
+		suite.db.Create(&accounts[i])
+	}
 
-	// When - get all accounts with our test names
+	// Now set Credit account to inactive using raw SQL to bypass GORM defaults
+	suite.db.Exec("UPDATE accounts SET is_active = ? WHERE name = ?", false, "Credit")
+
+	// When - get all accounts
 	var allAccounts []models.Account
-	err := suite.db.Where("name LIKE ?", "ListTest_%").Find(&allAccounts).Error
+	err := suite.db.Find(&allAccounts).Error
 
 	// Then
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), 3, len(allAccounts))
 
-	// When - get only active accounts with our test names
-	var activeOnly []models.Account
-	err = suite.db.Where("is_active = ? AND name LIKE ?", true, "ListTest_%").Find(&activeOnly).Error
+	// When - get only active accounts
+	var activeAccounts []models.Account
+	err = suite.db.Where("is_active = ?", true).Find(&activeAccounts).Error
 
 	// Then
 	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), 2, len(activeOnly))
+	assert.Equal(suite.T(), 2, len(activeAccounts))
+	for _, acc := range activeAccounts {
+		assert.True(suite.T(), acc.IsActive)
+	}
+
+	// When - get only inactive accounts
+	var inactiveAccounts []models.Account
+	err = suite.db.Where("is_active = ?", false).Find(&inactiveAccounts).Error
+
+	// Then
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), 1, len(inactiveAccounts))
+	if len(inactiveAccounts) > 0 {
+		assert.Equal(suite.T(), "Credit", inactiveAccounts[0].Name)
+	}
 }
 
 // TestUpdateAccount tests account updates
@@ -173,9 +187,8 @@ func (suite *AccountRepositoryTestSuite) TestAccountTypes() {
 
 	for i, accountType := range accountTypes {
 		account := &models.Account{
-			Name:     accountType + "_account", // Make names unique
+			Name:     accountType,
 			Type:     accountType,
-			Currency: "USD",
 			IsActive: true,
 		}
 		err := suite.db.Create(account).Error
@@ -189,27 +202,34 @@ func (suite *AccountRepositoryTestSuite) TestAccountTypes() {
 	}
 }
 
-// TestDuplicateAccountNames tests that duplicate active account names are prevented by DB constraint
+// TestDuplicateAccountNames tests that duplicate account names are rejected by database constraint
 func (suite *AccountRepositoryTestSuite) TestDuplicateAccountNames() {
-	// Given
+	// Given - create first account
 	account1 := &models.Account{
-		Name:     "Duplicate Name",
+		Name:     "Duplicate Account",
 		Type:     models.AccountTypeChecking,
+		Currency: "USD",
 		IsActive: true,
 	}
-	suite.db.Create(account1)
+	err := suite.db.Create(account1).Error
+	assert.NoError(suite.T(), err)
 
-	// When - try to create another account with same name (active)
+	// When - try to create account with same name
 	account2 := &models.Account{
-		Name:     "Duplicate Name",
+		Name:     "Duplicate Account",
 		Type:     models.AccountTypeSavings,
+		Currency: "USD",
 		IsActive: true,
 	}
+	err = suite.db.Create(account2).Error
 
-	err := suite.db.Create(account2).Error
-
-	// Then - should fail with unique constraint error
+	// Then - should fail with unique constraint violation
 	assert.Error(suite.T(), err)
+	assert.True(suite.T(),
+		strings.Contains(strings.ToLower(err.Error()), "duplicate") ||
+			strings.Contains(strings.ToLower(err.Error()), "unique") ||
+			strings.Contains(strings.ToLower(err.Error()), "constraint"),
+		"Expected unique constraint error, got: %v", err)
 }
 
 // Run the test suite
