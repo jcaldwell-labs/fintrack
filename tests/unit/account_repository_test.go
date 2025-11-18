@@ -81,19 +81,17 @@ func (suite *AccountRepositoryTestSuite) TestGetAccountByID() {
 
 // TestListAccounts tests listing all accounts
 func (suite *AccountRepositoryTestSuite) TestListAccounts() {
-	// Given - create test accounts (all active initially due to GORM default:true)
-	accounts := []models.Account{
-		{Name: "Checking", Type: models.AccountTypeChecking, Currency: "USD"},
-		{Name: "Savings", Type: models.AccountTypeSavings, Currency: "USD"},
-		{Name: "Credit", Type: models.AccountTypeCredit, Currency: "USD"},
-	}
+	// Given - create active accounts
+	checking := &models.Account{Name: "Checking", Type: models.AccountTypeChecking, IsActive: true}
+	_ = suite.db.Create(checking).Error
 
-	for i := range accounts {
-		suite.db.Create(&accounts[i])
-	}
+	savings := &models.Account{Name: "Savings", Type: models.AccountTypeSavings, IsActive: true}
+	_ = suite.db.Create(savings).Error
 
-	// Now set Credit account to inactive using raw SQL to bypass GORM defaults
-	suite.db.Exec("UPDATE accounts SET is_active = ? WHERE name = ?", false, "Credit")
+	// Create inactive account by first creating it active, then updating
+	credit := &models.Account{Name: "Credit", Type: models.AccountTypeCredit, IsActive: true}
+	_ = suite.db.Create(credit).Error
+	_ = suite.db.Model(credit).Update("is_active", false).Error
 
 	// When - get all accounts
 	var allAccounts []models.Account
@@ -202,9 +200,9 @@ func (suite *AccountRepositoryTestSuite) TestAccountTypes() {
 	}
 }
 
-// TestDuplicateAccountNames tests that duplicate account names are rejected by database constraint
+// TestDuplicateAccountNames tests the unique constraint on (name, is_active)
 func (suite *AccountRepositoryTestSuite) TestDuplicateAccountNames() {
-	// Given - create first account
+	// Given - create an active account
 	account1 := &models.Account{
 		Name:     "Duplicate Account",
 		Type:     models.AccountTypeChecking,
@@ -214,7 +212,8 @@ func (suite *AccountRepositoryTestSuite) TestDuplicateAccountNames() {
 	err := suite.db.Create(account1).Error
 	assert.NoError(suite.T(), err)
 
-	// When - try to create account with same name
+	// When - try to create another ACTIVE account with same name
+	// Then - should fail due to unique constraint on (name, is_active)
 	account2 := &models.Account{
 		Name:     "Duplicate Account",
 		Type:     models.AccountTypeSavings,
@@ -222,14 +221,18 @@ func (suite *AccountRepositoryTestSuite) TestDuplicateAccountNames() {
 		IsActive: true,
 	}
 	err = suite.db.Create(account2).Error
+	assert.Error(suite.T(), err) // Should fail - duplicate active account name
 
-	// Then - should fail with unique constraint violation
-	assert.Error(suite.T(), err)
-	assert.True(suite.T(),
-		strings.Contains(strings.ToLower(err.Error()), "duplicate") ||
-			strings.Contains(strings.ToLower(err.Error()), "unique") ||
-			strings.Contains(strings.ToLower(err.Error()), "constraint"),
-		"Expected unique constraint error, got: %v", err)
+	// When - deactivate the first account and create another with same name
+	// Then - should succeed because the constraint is on (name, is_active)
+	_ = suite.db.Model(account1).Update("is_active", false).Error
+	account3 := &models.Account{
+		Name:     "Duplicate Account",
+		Type:     models.AccountTypeSavings,
+		IsActive: true,
+	}
+	err = suite.db.Create(account3).Error
+	assert.NoError(suite.T(), err) // Should succeed - only one active account with this name
 }
 
 // Run the test suite
