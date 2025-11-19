@@ -49,8 +49,8 @@ jobs:
 
     - name: Run tests on changed packages
       run: |
-        # Get list of changed packages
-        changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep '\.go$' || true)
+        # Get list of changed packages (exclude deleted files with --diff-filter=d)
+        changed_files=$(git diff --name-only --diff-filter=d origin/${{ github.base_ref }}...HEAD | grep '\.go$' || true)
 
         if [ -z "$changed_files" ]; then
           echo "No Go files changed"
@@ -64,8 +64,13 @@ jobs:
         echo "$packages"
 
         for pkg in $packages; do
-          echo "Testing $pkg..."
-          go test -v -race "$pkg"
+          # Double-check directory exists (safety check)
+          if [ -d "$pkg" ]; then
+            echo "Testing $pkg..."
+            go test -v -race "$pkg"
+          else
+            echo "Skipping $pkg (directory not found)"
+          fi
         done
 
     - name: Check test coverage delta
