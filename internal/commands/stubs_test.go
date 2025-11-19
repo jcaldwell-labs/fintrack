@@ -7,22 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewTransactionCmd(t *testing.T) {
-	cmd := NewTransactionCmd()
-	assert.NotNil(t, cmd)
-	assert.Equal(t, "tx", cmd.Use)
-	assert.Contains(t, cmd.Aliases, "t")
-	assert.Equal(t, "Manage transactions (coming soon)", cmd.Short)
-	assert.NotNil(t, cmd.Run)
-
-	// Test that running the command doesn't panic
-	buf := new(bytes.Buffer)
-	cmd.SetOut(buf)
-	assert.NotPanics(t, func() {
-		cmd.Run(cmd, []string{})
-	})
-	assert.Contains(t, buf.String(), "coming soon")
-}
+// TestNewTransactionCmd has been removed because transaction command is now fully implemented
+// See transaction_repository_test.go for comprehensive transaction tests
 
 func TestNewBudgetCmd(t *testing.T) {
 	cmd := NewBudgetCmd()

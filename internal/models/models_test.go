@@ -54,7 +54,8 @@ func TestStringArray_Value_Nil(t *testing.T) {
 	var arr StringArray
 	value, err := arr.Value()
 	assert.NoError(t, err)
-	assert.Equal(t, "{}", value)
+	// Empty StringArray should encode as JSON array "[]", not object "{}"
+	assert.Equal(t, []byte("[]"), value)
 }
 
 func TestStringArray_Value_WithData(t *testing.T) {
