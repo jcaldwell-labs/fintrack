@@ -67,7 +67,7 @@ func (suite *CategoryRepositoryTestSuite) TestGetCategoryByID() {
 		Type:     models.CategoryTypeIncome,
 		IsSystem: true,
 	}
-	suite.repo.Create(category)
+	_ = suite.repo.Create(category)
 
 	// When
 	retrieved, err := suite.repo.GetByID(category.ID)
@@ -87,7 +87,7 @@ func (suite *CategoryRepositoryTestSuite) TestGetCategoryByName() {
 		Name: "Groceries",
 		Type: models.CategoryTypeExpense,
 	}
-	suite.repo.Create(category)
+	_ = suite.repo.Create(category)
 
 	// When
 	retrieved, err := suite.repo.GetByName("Groceries", models.CategoryTypeExpense)
@@ -118,7 +118,7 @@ func (suite *CategoryRepositoryTestSuite) TestListCategories() {
 	}
 
 	for i := range categories {
-		suite.repo.Create(&categories[i])
+		_ = suite.repo.Create(&categories[i])
 	}
 
 	// When - get all categories
@@ -139,7 +139,7 @@ func (suite *CategoryRepositoryTestSuite) TestListCategoriesByType() {
 	}
 
 	for i := range categories {
-		suite.repo.Create(&categories[i])
+		_ = suite.repo.Create(&categories[i])
 	}
 
 	// When - get only expense categories
@@ -164,7 +164,7 @@ func (suite *CategoryRepositoryTestSuite) TestListTopLevelCategories() {
 		Name: "Food & Dining",
 		Type: models.CategoryTypeExpense,
 	}
-	suite.repo.Create(parent)
+	_ = suite.repo.Create(parent)
 
 	// Create subcategory
 	subcategory := &models.Category{
@@ -172,7 +172,7 @@ func (suite *CategoryRepositoryTestSuite) TestListTopLevelCategories() {
 		Type:     models.CategoryTypeExpense,
 		ParentID: &parent.ID,
 	}
-	suite.repo.Create(subcategory)
+	_ = suite.repo.Create(subcategory)
 
 	// When
 	topLevel, err := suite.repo.ListTopLevel("")
@@ -190,7 +190,7 @@ func (suite *CategoryRepositoryTestSuite) TestListSubcategories() {
 		Name: "Food & Dining",
 		Type: models.CategoryTypeExpense,
 	}
-	suite.repo.Create(parent)
+	_ = suite.repo.Create(parent)
 
 	// Create subcategories
 	subcategories := []models.Category{
@@ -199,7 +199,7 @@ func (suite *CategoryRepositoryTestSuite) TestListSubcategories() {
 	}
 
 	for i := range subcategories {
-		suite.repo.Create(&subcategories[i])
+		_ = suite.repo.Create(&subcategories[i])
 	}
 
 	// When
@@ -218,7 +218,7 @@ func (suite *CategoryRepositoryTestSuite) TestUpdateCategory() {
 		Type:  models.CategoryTypeExpense,
 		Color: "#000000",
 	}
-	suite.repo.Create(category)
+	_ = suite.repo.Create(category)
 
 	// When
 	category.Name = "New Name"
@@ -242,7 +242,7 @@ func (suite *CategoryRepositoryTestSuite) TestDeleteCategory() {
 		Type:     models.CategoryTypeExpense,
 		IsSystem: false,
 	}
-	suite.repo.Create(category)
+	_ = suite.repo.Create(category)
 
 	// When
 	err := suite.repo.Delete(category.ID)
@@ -263,7 +263,7 @@ func (suite *CategoryRepositoryTestSuite) TestDeleteSystemCategory() {
 		Type:     models.CategoryTypeExpense,
 		IsSystem: true,
 	}
-	suite.repo.Create(category)
+	_ = suite.repo.Create(category)
 
 	// When
 	err := suite.repo.Delete(category.ID)
@@ -280,7 +280,7 @@ func (suite *CategoryRepositoryTestSuite) TestNameExists() {
 		Name: "Groceries",
 		Type: models.CategoryTypeExpense,
 	}
-	suite.repo.Create(category)
+	_ = suite.repo.Create(category)
 
 	// When - check existing name
 	exists, err := suite.repo.NameExists("Groceries", models.CategoryTypeExpense, nil)
@@ -311,7 +311,7 @@ func (suite *CategoryRepositoryTestSuite) TestNameExistsWithDifferentType() {
 		Name: "Transfer",
 		Type: models.CategoryTypeExpense,
 	}
-	suite.repo.Create(category)
+	_ = suite.repo.Create(category)
 
 	// When - check if "Transfer" exists as transfer type
 	exists, err := suite.repo.NameExists("Transfer", models.CategoryTypeTransfer, nil)
@@ -331,7 +331,7 @@ func (suite *CategoryRepositoryTestSuite) TestGetSystemCategories() {
 	}
 
 	for i := range categories {
-		suite.repo.Create(&categories[i])
+		_ = suite.repo.Create(&categories[i])
 	}
 
 	// When

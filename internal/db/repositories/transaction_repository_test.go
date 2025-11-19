@@ -53,14 +53,14 @@ func (suite *TransactionRepositoryTestSuite) SetupTest() {
 		CurrentBalance: 1000.0,
 		IsActive:       true,
 	}
-	suite.accountRepo.Create(suite.testAccount)
+	_ = suite.accountRepo.Create(suite.testAccount)
 
 	// Create test category
 	suite.testCategory = &models.Category{
 		Name: "Groceries",
 		Type: models.CategoryTypeExpense,
 	}
-	suite.categoryRepo.Create(suite.testCategory)
+	_ = suite.categoryRepo.Create(suite.testCategory)
 }
 
 // TestCreateTransaction tests transaction creation
@@ -97,7 +97,7 @@ func (suite *TransactionRepositoryTestSuite) TestGetTransactionByID() {
 		CategoryID: &suite.testCategory.ID,
 		Type:       models.TransactionTypeIncome,
 	}
-	suite.repo.Create(transaction)
+	_ = suite.repo.Create(transaction)
 
 	// When
 	retrieved, err := suite.repo.GetByID(transaction.ID)
@@ -132,7 +132,7 @@ func (suite *TransactionRepositoryTestSuite) TestListTransactions() {
 	}
 
 	for i := range transactions {
-		suite.repo.Create(&transactions[i])
+		_ = suite.repo.Create(&transactions[i])
 	}
 
 	// When
@@ -195,7 +195,7 @@ func (suite *TransactionRepositoryTestSuite) TestListTransactionsWithDateFilter(
 	}
 
 	for i := range transactions {
-		suite.repo.Create(&transactions[i])
+		_ = suite.repo.Create(&transactions[i])
 	}
 
 	// When - filter last 3 days
@@ -220,7 +220,7 @@ func (suite *TransactionRepositoryTestSuite) TestListTransactionsWithTypeFilter(
 	}
 
 	for i := range transactions {
-		suite.repo.Create(&transactions[i])
+		_ = suite.repo.Create(&transactions[i])
 	}
 
 	// When - filter by expense type
@@ -311,7 +311,7 @@ func (suite *TransactionRepositoryTestSuite) TestUpdateTransaction() {
 		Payee:     "Old Payee",
 		Type:      models.TransactionTypeExpense,
 	}
-	suite.repo.Create(transaction)
+	_ = suite.repo.Create(transaction)
 
 	// When
 	transaction.Amount = -75.00
@@ -336,7 +336,7 @@ func (suite *TransactionRepositoryTestSuite) TestDeleteTransaction() {
 		Amount:    -50.00,
 		Type:      models.TransactionTypeExpense,
 	}
-	suite.repo.Create(transaction)
+	_ = suite.repo.Create(transaction)
 
 	// When
 	err := suite.repo.Delete(transaction.ID)
@@ -359,7 +359,7 @@ func (suite *TransactionRepositoryTestSuite) TestGetTotalByAccount() {
 	}
 
 	for i := range transactions {
-		suite.repo.Create(&transactions[i])
+		_ = suite.repo.Create(&transactions[i])
 	}
 
 	// When
@@ -381,7 +381,7 @@ func (suite *TransactionRepositoryTestSuite) TestGetIncomeExpenseTotals() {
 	}
 
 	for i := range transactions {
-		suite.repo.Create(&transactions[i])
+		_ = suite.repo.Create(&transactions[i])
 	}
 
 	// When
@@ -403,7 +403,7 @@ func (suite *TransactionRepositoryTestSuite) TestMarkReconciled() {
 		Type:         models.TransactionTypeExpense,
 		IsReconciled: false,
 	}
-	suite.repo.Create(transaction)
+	_ = suite.repo.Create(transaction)
 
 	// When
 	err := suite.repo.MarkReconciled(transaction.ID)
@@ -429,7 +429,7 @@ func (suite *TransactionRepositoryTestSuite) TestUnmarkReconciled() {
 		IsReconciled: true,
 		ReconciledAt: &now,
 	}
-	suite.repo.Create(transaction)
+	_ = suite.repo.Create(transaction)
 
 	// When
 	err := suite.repo.UnmarkReconciled(transaction.ID)
@@ -453,7 +453,7 @@ func (suite *TransactionRepositoryTestSuite) TestSearchByPayee() {
 	}
 
 	for i := range transactions {
-		suite.repo.Create(&transactions[i])
+		_ = suite.repo.Create(&transactions[i])
 	}
 
 	// When
@@ -474,7 +474,7 @@ func (suite *TransactionRepositoryTestSuite) TestGetTransactionsByTags() {
 	}
 
 	for i := range transactions {
-		suite.repo.Create(&transactions[i])
+		_ = suite.repo.Create(&transactions[i])
 	}
 
 	// When - Note: SQLite doesn't support PostgreSQL array operators
