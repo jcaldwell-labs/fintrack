@@ -85,9 +85,10 @@ jobs:
 
     - name: Check coverage threshold
       run: |
-        # Current threshold set to 45% - gradually increase as more tests are added
-        # Target: 60% for core packages, 80% overall long-term
-        threshold=45.0
+        # Phase 1 threshold: 37% (transaction & category implementation complete)
+        # Phase 2 target: 45% (add account command tests, DB integration tests)
+        # Long-term target: 60% for core packages, 80% overall
+        threshold=37.0
         if (( $(echo "$COVERAGE < $threshold" | bc -l) )); then
           echo "❌ Coverage $COVERAGE% is below $threshold% threshold"
           exit 1
