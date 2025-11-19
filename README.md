@@ -13,12 +13,13 @@ FinTrack is a command-line tool for managing personal finances following Unix ph
 
 ### Current (Phase 1)
 - ✅ Account management (create, list, update, close)
+- ✅ Transaction tracking and categorization
+- ✅ Category management with hierarchical support
 - ✅ PostgreSQL backend with ACID compliance
 - ✅ JSON output for scripting
 - ✅ Cross-platform support (Linux, macOS, Windows)
 
 ### Coming Soon
-- 🔄 Transaction tracking and categorization
 - 🔄 CSV import with bank-specific mappings
 - 🔄 Budget tracking with alerts
 - 🔄 Recurring transaction scheduling
@@ -108,6 +109,88 @@ ID  NAME             TYPE       BALANCE      LAST ACTIVITY
 3   Ally Savings     savings    $15,000.00   2025-11-10
 ```
 
+#### Category Management
+
+```bash
+# List all categories
+fintrack category list
+fintrack cat list
+
+# Add a new category
+fintrack category add "Groceries" expense
+fintrack cat add "Salary" income --color "#00FF00" --icon "💰"
+
+# Add subcategory
+fintrack category add "Coffee" expense --parent "Food & Dining"
+
+# Show category details
+fintrack category show 5
+
+# Update category
+fintrack category update 5 --name "New Name" --color "#FF5733"
+
+# Delete category (non-system only)
+fintrack category delete 5
+
+# Filter by type
+fintrack category list --type expense
+fintrack cat list -t income
+```
+
+**Example output:**
+```
+ID  NAME              TYPE      PARENT          SYSTEM  COLOR     ICON
+1   Salary            income                    Yes               💰
+2   Groceries         expense   Food & Dining   No      #FF5733   🛒
+3   Transportation    expense                   Yes               🚗
+4   Gas/Fuel          expense   Transportation  Yes               ⛽
+```
+
+#### Transaction Management
+
+```bash
+# Add a transaction
+fintrack transaction add -50.00 --account "Checking" --category "Groceries" --payee "Walmart"
+fintrack tx add 2500.00 -a "Checking" -c "Salary" --date 2024-01-15
+
+# Add with tags
+fintrack tx add -30.00 -a "Checking" -c "Food & Dining" --tags "business,reimbursable"
+
+# List transactions
+fintrack transaction list
+fintrack tx list
+
+# Filter transactions
+fintrack tx list --account "Checking"
+fintrack tx list --category "Groceries" --start 2024-01-01 --end 2024-01-31
+fintrack tx list --type expense --limit 50
+
+# Show transaction details
+fintrack transaction show 42
+fintrack tx show 100
+
+# Update transaction
+fintrack tx update 42 --amount -75.50
+fintrack tx update 42 --category "Entertainment" --payee "Netflix"
+
+# Delete transaction
+fintrack tx delete 42
+```
+
+**Example output:**
+```
+ID  DATE        ACCOUNT   CATEGORY      PAYEE      AMOUNT     TYPE
+42  2024-01-15  Checking  Groceries     Walmart    -$50.00    expense
+43  2024-01-16  Checking  Salary        Employer   $2500.00   income
+44  2024-01-17  Checking  Gas/Fuel      Shell      -$45.00    expense
+
+Summary:
+  Total Transactions: 3
+  Income: $2500.00
+  Expenses: $95.00
+  Net: $2405.00
+```
+
 ## Architecture
 
 ### Technology Stack
@@ -128,6 +211,8 @@ fintrack/
 ├── internal/
 │   ├── commands/              # Command implementations
 │   │   ├── account.go         # Account management
+│   │   ├── category.go        # Category management
+│   │   ├── transaction.go     # Transaction management
 │   │   └── stubs.go           # Placeholder commands
 │   ├── core/                  # Business logic (coming soon)
 │   ├── models/                # Data models
@@ -135,7 +220,9 @@ fintrack/
 │   ├── db/                    # Database layer
 │   │   ├── connection.go
 │   │   └── repositories/
-│   │       └── account_repository.go
+│   │       ├── account_repository.go
+│   │       ├── category_repository.go
+│   │       └── transaction_repository.go
 │   ├── output/                # Output formatters
 │   │   └── output.go
 │   └── config/                # Configuration
@@ -254,8 +341,8 @@ See `../fintrack_schema.sql` for the complete schema.
 - [x] Project setup and structure
 - [x] Database connection and models
 - [x] Account CRUD operations
-- [ ] Transaction CRUD operations
-- [ ] Category management
+- [x] Transaction CRUD operations
+- [x] Category management
 - [ ] CSV import (generic format)
 - [ ] Basic reporting
 

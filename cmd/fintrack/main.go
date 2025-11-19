@@ -52,6 +52,7 @@ Unix philosophy: Composable commands, text output, scriptable.`,
 
 	// Add subcommands
 	rootCmd.AddCommand(commands.NewAccountCmd())
+	rootCmd.AddCommand(commands.NewCategoryCmd())
 	rootCmd.AddCommand(commands.NewTransactionCmd())
 	rootCmd.AddCommand(commands.NewBudgetCmd())
 	rootCmd.AddCommand(commands.NewScheduleCmd())

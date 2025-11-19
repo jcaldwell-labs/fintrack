@@ -54,7 +54,8 @@ func TestStringArray_Value_Nil(t *testing.T) {
 	var arr StringArray
 	value, err := arr.Value()
 	assert.NoError(t, err)
-	assert.Equal(t, "{}", value)
+	// Empty StringArray should encode as JSON array "[]", not object "{}"
+	assert.Equal(t, []byte("[]"), value)
 }
 
 func TestStringArray_Value_WithData(t *testing.T) {
@@ -220,25 +221,25 @@ func TestRecurringItem_Structure(t *testing.T) {
 	lastGenerated := now.AddDate(0, -1, 0)
 
 	recurring := RecurringItem{
-		ID:                  1,
-		AccountID:           10,
-		Name:                "Monthly Rent",
-		Amount:              -1500.0,
-		CategoryID:          &categoryID,
-		Description:         "Rent payment",
-		Frequency:           FrequencyMonthly,
-		FrequencyInterval:   1,
-		DayOfMonth:          &dayOfMonth,
-		DayOfWeek:           &dayOfWeek,
-		StartDate:           now,
-		EndDate:             &endDate,
-		NextDate:            now.AddDate(0, 1, 0),
-		LastGeneratedDate:   &lastGenerated,
-		AutoGenerate:        true,
-		ReminderDaysBefore:  3,
-		IsActive:            true,
-		CreatedAt:           now,
-		UpdatedAt:           now,
+		ID:                 1,
+		AccountID:          10,
+		Name:               "Monthly Rent",
+		Amount:             -1500.0,
+		CategoryID:         &categoryID,
+		Description:        "Rent payment",
+		Frequency:          FrequencyMonthly,
+		FrequencyInterval:  1,
+		DayOfMonth:         &dayOfMonth,
+		DayOfWeek:          &dayOfWeek,
+		StartDate:          now,
+		EndDate:            &endDate,
+		NextDate:           now.AddDate(0, 1, 0),
+		LastGeneratedDate:  &lastGenerated,
+		AutoGenerate:       true,
+		ReminderDaysBefore: 3,
+		IsActive:           true,
+		CreatedAt:          now,
+		UpdatedAt:          now,
 	}
 
 	assert.Equal(t, uint(1), recurring.ID)

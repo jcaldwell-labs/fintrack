@@ -17,7 +17,7 @@ type Account struct {
 	CurrentBalance     float64   `gorm:"default:0" json:"current_balance"`
 	Institution        string    `json:"institution,omitempty"`
 	AccountNumberLast4 string    `gorm:"column:account_number_last4" json:"account_number_last4,omitempty"`
-	IsActive           bool      `gorm:"default:true;index" json:"is_active"`
+	IsActive           bool      `gorm:"default:true;uniqueIndex:idx_accounts_name_active;index" json:"is_active"`
 	Notes              string    `json:"notes,omitempty"`
 	CreatedAt          time.Time `json:"created_at"`
 	UpdatedAt          time.Time `json:"updated_at"`
@@ -59,7 +59,7 @@ func (a *StringArray) Scan(value interface{}) error {
 // Value implements the driver.Valuer interface
 func (a StringArray) Value() (driver.Value, error) {
 	if a == nil {
-		return "{}", nil
+		a = []string{}
 	}
 	return json.Marshal(a)
 }
