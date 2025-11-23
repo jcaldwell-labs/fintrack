@@ -411,11 +411,12 @@ fintrack t ls         # Short for list
 fintrack t del        # Short for delete
 
 # Common Flags
---date, -d           # Transaction date (YYYY-MM-DD)
+--date               # Transaction date (YYYY-MM-DD)
 --type, -t           # Type: income, expense, transfer
 --description, -d    # Description text
 --payee, -p          # Payee/merchant name
 --category, -c       # Category ID
+--amount, -a         # Transaction amount (for updates)
 --json               # JSON output format
 --start-date         # Filter start date
 --end-date           # Filter end date
@@ -431,8 +432,11 @@ fintrack tx list --start-date 2025-11-01 --end-date 2025-11-30 --type expense
 
 **Account Reconciliation:**
 ```bash
-# List unreconciled transactions
-fintrack tx list 1 | grep -v "true"
+# List unreconciled transactions (using JSON output)
+fintrack tx list 1 --json | jq '.data[] | select(.is_reconciled == false) | .id'
+
+# Or with details
+fintrack tx list 1 --json | jq '.data[] | select(.is_reconciled == false)'
 
 # Reconcile specific transaction
 fintrack tx reconcile 42
