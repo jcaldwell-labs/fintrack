@@ -12,6 +12,23 @@ import (
 )
 
 var db *gorm.DB
+var originalDB *gorm.DB
+
+// SetTestDB sets a test database instance (for testing only)
+func SetTestDB(testDB *gorm.DB) {
+	if originalDB == nil {
+		originalDB = db
+	}
+	db = testDB
+}
+
+// ResetTestDB resets to the original database instance (for testing only)
+func ResetTestDB() {
+	if originalDB != nil {
+		db = originalDB
+		originalDB = nil
+	}
+}
 
 // Init initializes the database connection
 func Init() error {
