@@ -60,22 +60,22 @@ go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@lat
 
 # Run all migrations up
 migrate -path migrations \
-  -database "postgresql://USERNAME:PASSWORD@localhost:5432/fintrack?sslmode=disable" \
+  -database "$DATABASE_URL" \
   up
 
 # Run one migration up
 migrate -path migrations \
-  -database "postgresql://USERNAME:PASSWORD@localhost:5432/fintrack?sslmode=disable" \
+  -database "$DATABASE_URL" \
   up 1
 
 # Roll back one migration
 migrate -path migrations \
-  -database "postgresql://USERNAME:PASSWORD@localhost:5432/fintrack?sslmode=disable" \
+  -database "$DATABASE_URL" \
   down 1
 
 # Show current version
 migrate -path migrations \
-  -database "postgresql://USERNAME:PASSWORD@localhost:5432/fintrack?sslmode=disable" \
+  -database "$DATABASE_URL" \
   version
 ```
 
