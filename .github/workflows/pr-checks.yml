@@ -24,14 +24,17 @@ jobs:
       run: |
         echo "Checking for potentially sensitive data..."
 
+        # Get diff excluding workflow files (they may contain security check patterns)
+        DIFF_CONTENT=$(git diff origin/${{ github.base_ref }}...HEAD -- . ':!.github/workflows/*')
+
         # Check for common password patterns (only in added lines, not deletions)
-        if git diff origin/${{ github.base_ref }}...HEAD | grep '^+' | grep -iE '(password|secret|api[_-]?key|token).*=.*["\x27][^"\x27]{8,}'; then
+        if echo "$DIFF_CONTENT" | grep '^+' | grep -iE '(password|secret|api[_-]?key|token).*=.*["\x27][^"\x27]{8,}'; then
           echo "❌ Potential credentials found in added lines"
           exit 1
         fi
 
         # Check for database URLs with credentials (only in added lines, not deletions)
-        if git diff origin/${{ github.base_ref }}...HEAD | grep '^+' | grep -E 'postgresql://[^:]+:[^@]+@'; then
+        if echo "$DIFF_CONTENT" | grep '^+' | grep -E 'postgresql://[^:]+:[^@]+@'; then
           echo "❌ Database URL with credentials found in added lines"
           exit 1
         fi
