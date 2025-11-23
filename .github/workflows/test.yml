@@ -69,8 +69,10 @@ jobs:
 
     - name: Run integration tests
       env:
-        FINTRACK_DB_URL: postgresql://test_user:test_password@localhost:5432/fintrack_test?sslmode=disable
+        TEST_DB_USER: test_user
+        TEST_DB_PASS: test_password
       run: |
+        export FINTRACK_DB_URL="postgresql://${TEST_DB_USER}:${TEST_DB_PASS}@localhost:5432/fintrack_test?sslmode=disable"
         if [ -d "tests/integration" ] && [ "$(ls -A tests/integration/*.go 2>/dev/null)" ]; then
           go test -v -tags=integration ./tests/integration/...
         else
@@ -82,8 +84,10 @@ jobs:
 
     - name: Run usage documentation tests
       env:
-        FINTRACK_DB_URL: postgresql://test_user:test_password@localhost:5432/fintrack_test?sslmode=disable
+        TEST_DB_USER: test_user
+        TEST_DB_PASS: test_password
       run: |
+        export FINTRACK_DB_URL="postgresql://${TEST_DB_USER}:${TEST_DB_PASS}@localhost:5432/fintrack_test?sslmode=disable"
         echo "Running usage documentation tests..."
         go test -v ./tests/usage/ || echo "⚠️  Some usage tests failed - check for regressions"
 

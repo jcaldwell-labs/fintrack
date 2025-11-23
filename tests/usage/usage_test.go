@@ -49,12 +49,15 @@ func buildTestBinary(t *testing.T) string {
 func setupTestDatabase(t *testing.T) {
 	t.Helper()
 
-	// Set environment for test database
-	os.Setenv("FINTRACK_DB_URL", "postgresql://postgres:postgres@localhost:5432/fintrack_test?sslmode=disable")
+	// Set environment for test database if not already set
+	// Actual credentials should be provided via environment variables in CI or locally
+	if os.Getenv("FINTRACK_DB_URL") == "" {
+		os.Setenv("FINTRACK_DB_URL", "postgresql://localhost:5432/fintrack_test?sslmode=disable")
+	}
 
 	// Note: Database setup is handled by the application
-	// The test database should be created beforehand:
-	// createdb fintrack_test
+	// The test database and credentials should be configured beforehand via environment
+	// Example: export FINTRACK_DB_URL="postgresql://user:pass@localhost:5432/fintrack_test"
 }
 
 // cleanupTestDatabase cleans up the test database

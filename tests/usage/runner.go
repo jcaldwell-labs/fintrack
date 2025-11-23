@@ -1,7 +1,6 @@
 package usage
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"os"
@@ -211,9 +210,13 @@ func runCommand(t *testing.T, cmdStr string, binaryPath string, failOnError bool
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	// Set test database environment
+	// Set test database environment - use existing FINTRACK_DB_URL or default
+	testDBURL := os.Getenv("FINTRACK_DB_URL")
+	if testDBURL == "" {
+		testDBURL = "postgresql://localhost:5432/fintrack_test?sslmode=disable"
+	}
 	cmd.Env = append(os.Environ(),
-		"FINTRACK_DB_URL=postgresql://postgres:postgres@localhost:5432/fintrack_test?sslmode=disable",
+		"FINTRACK_DB_URL="+testDBURL,
 	)
 
 	err := cmd.Run()

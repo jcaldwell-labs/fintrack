@@ -163,8 +163,8 @@ Tests use a dedicated test database to avoid affecting production data:
 # One-time setup
 createdb fintrack_test
 
-# Tests automatically use:
-FINTRACK_DB_URL=postgresql://test_user:test_password@localhost:5432/fintrack_test
+# Tests require database URL to be set (credentials via environment):
+export FINTRACK_DB_URL="postgresql://USERNAME:PASSWORD@localhost:5432/fintrack_test"
 ```
 
 ## Writing Good Usage Tests
