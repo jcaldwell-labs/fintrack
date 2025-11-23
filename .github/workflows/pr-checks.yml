@@ -24,19 +24,19 @@ jobs:
       run: |
         echo "Checking for potentially sensitive data..."
 
-        # Check for common password patterns
-        if git diff origin/${{ github.base_ref }}...HEAD | grep -iE '(password|secret|api[_-]?key|token).*=.*["\x27][^"\x27]{8,}'; then
-          echo "❌ Potential credentials found in diff"
+        # Check for common password patterns (only in added lines, not deletions)
+        if git diff origin/${{ github.base_ref }}...HEAD | grep '^+' | grep -iE '(password|secret|api[_-]?key|token).*=.*["\x27][^"\x27]{8,}'; then
+          echo "❌ Potential credentials found in added lines"
           exit 1
         fi
 
-        # Check for database URLs with credentials
-        if git diff origin/${{ github.base_ref }}...HEAD | grep -E 'postgresql://[^:]+:[^@]+@'; then
-          echo "❌ Database URL with credentials found"
+        # Check for database URLs with credentials (only in added lines, not deletions)
+        if git diff origin/${{ github.base_ref }}...HEAD | grep '^+' | grep -E 'postgresql://[^:]+:[^@]+@'; then
+          echo "❌ Database URL with credentials found in added lines"
           exit 1
         fi
 
-        echo "✅ No sensitive data detected"
+        echo "✅ No sensitive data detected in added lines"
 
     - name: Check for TODO/FIXME
       run: |
