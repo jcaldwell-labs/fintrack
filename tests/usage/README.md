@@ -164,7 +164,8 @@ Tests use a dedicated test database to avoid affecting production data:
 createdb fintrack_test
 
 # Tests require database URL to be set (credentials via environment):
-export FINTRACK_DB_URL="postgresql://USERNAME:PASSWORD@localhost:5432/fintrack_test"
+# Format: postgresql://user:password@host:port/database
+export FINTRACK_DB_URL="postgresql://[USER]:[PASS]@localhost:5432/fintrack_test"
 ```
 
 ## Writing Good Usage Tests

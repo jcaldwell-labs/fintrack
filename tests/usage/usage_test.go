@@ -57,7 +57,7 @@ func setupTestDatabase(t *testing.T) {
 
 	// Note: Database setup is handled by the application
 	// The test database and credentials should be configured beforehand via environment
-	// Example: export FINTRACK_DB_URL="postgresql://user:pass@localhost:5432/fintrack_test"
+	// Example: export FINTRACK_DB_URL="postgresql://[user]:[password]@localhost:5432/fintrack_test"
 }
 
 // cleanupTestDatabase cleans up the test database
