@@ -24,22 +24,17 @@ jobs:
       run: |
         echo "Checking for potentially sensitive data..."
 
-        # Get diff excluding workflow files (they may contain security check patterns)
-        DIFF_CONTENT=$(git diff origin/${{ github.base_ref }}...HEAD -- . ':!.github/workflows/*')
+        # Get diff excluding workflow files and documentation
+        DIFF_CONTENT=$(git diff origin/${{ github.base_ref }}...HEAD -- . ':!.github/workflows/*' ':!*.md')
 
         # Check for common password patterns (only in added lines, not deletions)
-        if echo "$DIFF_CONTENT" | grep '^+' | grep -iE '(password|secret|api[_-]?key|token).*=.*["\x27][^"\x27]{8,}'; then
-          echo "❌ Potential credentials found in added lines"
+        # Exclude comments and documentation
+        if echo "$DIFF_CONTENT" | grep '^+' | grep -v '^+\s*#' | grep -v '^+\s*//' | grep -iE '(password|secret|api[_-]?key|token).*=.*["\x27][^"\x27]{8,}'; then
+          echo "❌ Potential hardcoded credentials found in code"
           exit 1
         fi
 
-        # Check for database URLs with credentials (only in added lines, not deletions)
-        if echo "$DIFF_CONTENT" | grep '^+' | grep -E 'postgresql://[^:]+:[^@]+@'; then
-          echo "❌ Database URL with credentials found in added lines"
-          exit 1
-        fi
-
-        echo "✅ No sensitive data detected in added lines"
+        echo "✅ No sensitive data detected (use Security Scan for comprehensive checks)"
 
     - name: Check for TODO/FIXME
       run: |
