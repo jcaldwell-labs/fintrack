@@ -48,3 +48,4 @@ temp/
 
 # Build artifacts
 __debug_bin
+/fintrack
