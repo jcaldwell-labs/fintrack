@@ -47,6 +47,12 @@ make test-unit
 # Run only integration tests
 make test-integration
 
+# Run usage documentation tests (executable docs)
+make test-usage
+
+# Run usage tests and update markdown with results
+make test-usage-update
+
 # Check coverage threshold (60% target)
 make test-coverage-check
 
@@ -132,7 +138,11 @@ internal/
 
 tests/
 ├── integration/    # Integration tests (future)
-└── unit/          # Legacy unit tests (being migrated to co-located)
+├── unit/          # Legacy unit tests (being migrated to co-located)
+└── usage/         # Usage documentation tests (executable docs)
+    ├── runner.go                # Test harness for parsing & executing
+    ├── usage_test.go            # Test runner
+    └── 01-account-management.md # Executable usage documentation
 ```
 
 ### Key Architecture Patterns
@@ -268,6 +278,81 @@ This project follows TDD:
 - `internal/db`: 36.8% ⚠️ (needs improvement)
 - `cmd/fintrack`: 0.0% ❌ (integration tests planned)
 
+### Usage Documentation Tests (Living Documentation)
+
+FinTrack uses **executable usage documentation** - markdown files that serve as both user documentation and automated tests. This approach catches real-world usage issues and ensures examples stay up-to-date.
+
+**What are Usage Tests?**
+- Markdown files in `tests/usage/` with executable command examples
+- Each test includes: context, setup, execution, expected output, and actual output
+- Tests run against the built binary (not mocked)
+- Results are automatically captured and written back to markdown
+- Pass/fail status tracked with timestamps
+
+**Example Format:**
+```markdown
+## Test: Create a checking account
+**Purpose:** Verify users can create a basic checking account
+
+### Setup
+```bash
+# Clean slate - ensure no existing test accounts
+fintrack account delete "Test Checking" 2>/dev/null || true
+```
+
+### Execute
+```bash
+fintrack account create "Test Checking" --type checking --balance 1000.00
+```
+
+### Expected Output
+```
+Account created successfully
+ID: <number>
+Name: Test Checking
+```
+
+### Actual Output (auto-updated)
+```
+Account created successfully
+ID: 42
+Name: Test Checking
+```
+
+✅ PASS (last run: 2025-11-23)
+```
+
+**Wildcard Patterns:**
+- `<any>` - Matches any value
+- `<number>` - Matches integers
+- `<date>` - Matches YYYY-MM-DD format
+- `<uuid>` - Matches UUID format
+- `<money>` - Matches currency like $1,234.56
+
+**Running Usage Tests:**
+```bash
+# Run all usage tests
+make test-usage
+
+# Run and update markdown with results
+make test-usage-update
+
+# Run directly with Go
+go test -v ./tests/usage/
+```
+
+**When to Add Usage Tests:**
+1. When adding new CLI commands
+2. When changing output formats
+3. When fixing user-reported issues
+4. For regression prevention on critical workflows
+
+**Benefits:**
+- **Documentation** - Shows real, tested examples
+- **Validation** - Catches output format regressions
+- **Stability** - Prevents breaking changes to user-facing behavior
+- **Onboarding** - New contributors see working examples
+
 ### Adding New Commands
 1. **Write tests first** in co-located `*_test.go` file (TDD)
 2. Create command function in `internal/commands/`
@@ -297,6 +382,7 @@ Currently using GORM AutoMigrate for development. For production, migrations sho
   - Tests with Go 1.21 and 1.22 (matrix)
   - PostgreSQL 15 service container for integration tests
   - Race detection enabled
+  - Usage documentation tests (executable examples)
   - Coverage threshold check (currently 45%, targeting 60%)
   - Codecov integration for coverage tracking
   - Security scanning with Gosec

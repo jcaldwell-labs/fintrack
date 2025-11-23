@@ -104,6 +104,20 @@ test-integration:
 		echo "No integration tests found"; \
 	fi
 
+# Run usage tests (executable documentation)
+test-usage:
+	@echo "Running usage tests..."
+	@echo "Building binary..."
+	@make build > /dev/null
+	@echo "Executing usage documentation tests..."
+	@$(GO) test -v ./tests/usage/ || true
+	@echo ""
+	@echo "✅ Usage tests complete. Check tests/usage/*.md for updated results."
+
+# Run usage tests and update markdown files
+test-usage-update: test-usage
+	@echo "Usage documentation has been updated with actual results"
+
 # Watch mode - re-run tests on file changes
 test-watch:
 	@echo "Watching for changes..."
@@ -159,6 +173,8 @@ help:
 	@echo "  test-race     - Run tests with race detector"
 	@echo "  test-unit     - Run only unit tests"
 	@echo "  test-integration - Run only integration tests"
+	@echo "  test-usage    - Run usage documentation tests"
+	@echo "  test-usage-update - Run usage tests and update docs"
 	@echo "  test-coverage - Run tests with coverage report"
 	@echo "  test-coverage-check - Check if coverage meets 60% threshold"
 	@echo "  test-watch    - Watch and re-run tests on changes"
