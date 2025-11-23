@@ -67,7 +67,7 @@ func (suite *AccountRepositoryTestSuite) TestGetByID() {
 		Currency: "USD",
 		IsActive: true,
 	}
-	suite.repo.Create(account)
+	_ = suite.repo.Create(account)
 
 	retrieved, err := suite.repo.GetByID(account.ID)
 	assert.NoError(suite.T(), err)
@@ -89,7 +89,7 @@ func (suite *AccountRepositoryTestSuite) TestGetByName() {
 		Currency: "USD",
 		IsActive: true,
 	}
-	suite.repo.Create(account)
+	_ = suite.repo.Create(account)
 
 	retrieved, err := suite.repo.GetByName("Unique Name")
 	assert.NoError(suite.T(), err)
@@ -127,7 +127,7 @@ func (suite *AccountRepositoryTestSuite) TestList_All() {
 		{Name: "Account 3", Type: models.AccountTypeCredit, Currency: "USD", IsActive: false},
 	}
 	for _, acc := range accounts {
-		suite.repo.Create(acc)
+		_ = suite.repo.Create(acc)
 	}
 
 	result, err := suite.repo.List(false)
@@ -142,7 +142,7 @@ func (suite *AccountRepositoryTestSuite) TestList_ActiveOnly() {
 		{Name: "Active 2", Type: models.AccountTypeSavings, Currency: "USD", IsActive: true},
 	}
 	for _, acc := range activeAccounts {
-		suite.repo.Create(acc)
+		_ = suite.repo.Create(acc)
 	}
 
 	// Create inactive account using raw SQL to bypass GORM defaults
@@ -162,7 +162,7 @@ func (suite *AccountRepositoryTestSuite) TestUpdate() {
 		CurrentBalance: 100.0,
 		IsActive:       true,
 	}
-	suite.repo.Create(account)
+	_ = suite.repo.Create(account)
 
 	account.Name = "Updated Name"
 	account.CurrentBalance = 200.0
@@ -181,7 +181,7 @@ func (suite *AccountRepositoryTestSuite) TestDelete() {
 		Currency: "USD",
 		IsActive: true,
 	}
-	suite.repo.Create(account)
+	_ = suite.repo.Create(account)
 
 	err := suite.repo.Delete(account.ID)
 	assert.NoError(suite.T(), err)
@@ -198,7 +198,7 @@ func (suite *AccountRepositoryTestSuite) TestHardDelete() {
 		Currency: "USD",
 		IsActive: true,
 	}
-	suite.repo.Create(account)
+	_ = suite.repo.Create(account)
 
 	err := suite.repo.HardDelete(account.ID)
 	assert.NoError(suite.T(), err)
@@ -216,7 +216,7 @@ func (suite *AccountRepositoryTestSuite) TestUpdateBalance() {
 		CurrentBalance: 100.0,
 		IsActive:       true,
 	}
-	suite.repo.Create(account)
+	_ = suite.repo.Create(account)
 
 	err := suite.repo.UpdateBalance(account.ID, 250.0)
 	assert.NoError(suite.T(), err)
@@ -233,7 +233,7 @@ func (suite *AccountRepositoryTestSuite) TestGetBalance() {
 		CurrentBalance: 350.0,
 		IsActive:       true,
 	}
-	suite.repo.Create(account)
+	_ = suite.repo.Create(account)
 
 	balance, err := suite.repo.GetBalance(account.ID)
 	assert.NoError(suite.T(), err)
@@ -253,7 +253,7 @@ func (suite *AccountRepositoryTestSuite) TestNameExists_True() {
 		Currency: "USD",
 		IsActive: true,
 	}
-	suite.repo.Create(account)
+	_ = suite.repo.Create(account)
 
 	exists, err := suite.repo.NameExists("Existing Name", nil)
 	assert.NoError(suite.T(), err)
@@ -273,7 +273,7 @@ func (suite *AccountRepositoryTestSuite) TestNameExists_WithExclude() {
 		Currency: "USD",
 		IsActive: true,
 	}
-	suite.repo.Create(account)
+	_ = suite.repo.Create(account)
 
 	// Should return false when excluding the ID of the account with that name
 	exists, err := suite.repo.NameExists("Test Name", &account.ID)
