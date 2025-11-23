@@ -129,24 +129,24 @@ func (t *Table) Print() {
 
 	// Print header
 	for i, header := range t.Headers {
-		fmt.Fprintf(t.writer, "%-*s  ", widths[i], header)
+		_, _ = fmt.Fprintf(t.writer, "%-*s  ", widths[i], header)
 	}
-	fmt.Fprintln(t.writer)
+	_, _ = fmt.Fprintln(t.writer)
 
 	// Print separator
 	for i := range t.Headers {
-		fmt.Fprint(t.writer, strings.Repeat("-", widths[i]), "  ")
+		_, _ = fmt.Fprint(t.writer, strings.Repeat("-", widths[i]), "  ")
 	}
-	fmt.Fprintln(t.writer)
+	_, _ = fmt.Fprintln(t.writer)
 
 	// Print rows
 	for _, row := range t.Rows {
 		for i, cell := range row {
 			if i < len(widths) {
-				fmt.Fprintf(t.writer, "%-*s  ", widths[i], cell)
+				_, _ = fmt.Fprintf(t.writer, "%-*s  ", widths[i], cell)
 			}
 		}
-		fmt.Fprintln(t.writer)
+		_, _ = fmt.Fprintln(t.writer)
 	}
 }
 

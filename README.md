@@ -13,12 +13,15 @@ FinTrack is a command-line tool for managing personal finances following Unix ph
 
 ### Current (Phase 1)
 - ✅ Account management (create, list, update, close)
+- ✅ Transaction tracking with full CRUD operations
+- ✅ Transaction filtering by date, type, and account
+- ✅ Transaction reconciliation support
 - ✅ PostgreSQL backend with ACID compliance
 - ✅ JSON output for scripting
 - ✅ Cross-platform support (Linux, macOS, Windows)
 
 ### Coming Soon
-- 🔄 Transaction tracking and categorization
+- 🔄 Category management
 - 🔄 CSV import with bank-specific mappings
 - 🔄 Budget tracking with alerts
 - 🔄 Recurring transaction scheduling
@@ -106,6 +109,58 @@ ID  NAME             TYPE       BALANCE      LAST ACTIVITY
 1   Chase Checking   checking   $5,234.10    2025-11-16
 2   Amex Gold        credit     -$1,234.00   2025-11-15
 3   Ally Savings     savings    $15,000.00   2025-11-10
+```
+
+#### Transaction Management
+
+```bash
+# Add an expense (negative amount)
+fintrack tx add 1 -50.00 --payee "Whole Foods" --description "Groceries"
+fintrack t add 1 -50.00 -p "Whole Foods" -d "Groceries"
+
+# Add income (positive amount)
+fintrack tx add 1 1200.00 --type income --payee "Acme Corp" --description "Salary"
+
+# Add transaction with specific date
+fintrack tx add 1 -25.50 --date 2025-11-20 --payee "Gas Station"
+
+# List all transactions
+fintrack tx list
+fintrack t ls
+
+# List transactions for specific account
+fintrack tx list 1
+
+# List transactions with filters
+fintrack tx list --start-date 2025-11-01 --end-date 2025-11-30
+fintrack tx list --type expense --limit 20
+
+# Show transaction details
+fintrack tx show 42
+
+# Update a transaction
+fintrack tx update 42 --amount -60.00 --description "Updated description"
+
+# Mark transaction as reconciled
+fintrack tx reconcile 42
+
+# Unreconcile a transaction
+fintrack tx reconcile 42 --unreconcile
+
+# Delete a transaction
+fintrack tx delete 42
+fintrack t del 42
+
+# JSON output for scripting
+fintrack tx list --json | jq '.data[] | select(.amount < 0)'
+```
+
+**Example output:**
+```
+ID  Date        Account         Amount     Type     Payee          Description
+42  2025-11-20  Chase Checking  -$50.00    expense  Whole Foods    Groceries
+41  2025-11-19  Chase Checking  -$25.50    expense  Gas Station    Fuel
+40  2025-11-15  Chase Checking  $1,200.00  income   Acme Corp      Salary
 ```
 
 ## Architecture
@@ -254,7 +309,8 @@ See `../fintrack_schema.sql` for the complete schema.
 - [x] Project setup and structure
 - [x] Database connection and models
 - [x] Account CRUD operations
-- [ ] Transaction CRUD operations
+- [x] Transaction CRUD operations
+- [x] Transaction filtering and reconciliation
 - [ ] Category management
 - [ ] CSV import (generic format)
 - [ ] Basic reporting

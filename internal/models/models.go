@@ -79,7 +79,7 @@ type Transaction struct {
 	TransferAccountID *uint       `json:"transfer_account_id,omitempty"`
 	TransferAccount   *Account    `gorm:"foreignKey:TransferAccountID" json:"transfer_account,omitempty"`
 	RecurringID       *uint       `gorm:"index" json:"recurring_id,omitempty"`
-	Tags              StringArray `gorm:"type:text[]" json:"tags,omitempty"`
+	Tags              StringArray `gorm:"type:json;serializer:json" json:"tags,omitempty"`
 	IsReconciled      bool        `gorm:"default:false;index" json:"is_reconciled"`
 	ReconciledAt      *time.Time  `json:"reconciled_at,omitempty"`
 	ImportID          *uint       `json:"import_id,omitempty"`

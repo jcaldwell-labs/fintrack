@@ -49,8 +49,8 @@ func TestGetDatabaseURL_WithComponents(t *testing.T) {
 }
 
 func TestGetDatabaseURL_WithEnvPassword(t *testing.T) {
-	os.Setenv("FINTRACK_DB_PASSWORD", "envpass")
-	defer os.Unsetenv("FINTRACK_DB_PASSWORD")
+	_ = os.Setenv("FINTRACK_DB_PASSWORD", "envpass")
+	defer func() { _ = os.Unsetenv("FINTRACK_DB_PASSWORD") }()
 
 	config := &Config{
 		Database: DatabaseConfig{
@@ -99,8 +99,8 @@ func TestInit_WithoutConfigFile(t *testing.T) {
 
 	// Create a temporary directory for config
 	tmpDir := t.TempDir()
-	os.Setenv("HOME", tmpDir)
-	defer os.Unsetenv("HOME")
+	_ = os.Setenv("HOME", tmpDir)
+	defer func() { _ = os.Unsetenv("HOME") }()
 
 	err := Init("")
 	// Should not error even if config file doesn't exist
@@ -114,8 +114,8 @@ func TestInit_WithEnvVars(t *testing.T) {
 	// Create a temporary directory for config
 	tmpDir := t.TempDir()
 	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpDir)
-	defer os.Setenv("HOME", oldHome)
+	_ = os.Setenv("HOME", tmpDir)
+	defer func() { _ = os.Setenv("HOME", oldHome) }()
 
 	// Reset viper
 	viper.Reset()

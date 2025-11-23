@@ -13,7 +13,7 @@ import (
 func TestGetFormat_JSON(t *testing.T) {
 	cmd := &cobra.Command{}
 	cmd.Flags().Bool("json", true, "JSON output")
-	cmd.Flags().Set("json", "true")
+	_ = cmd.Flags().Set("json", "true")
 
 	format := GetFormat(cmd)
 	assert.Equal(t, FormatJSON, format)
@@ -46,7 +46,7 @@ func TestPrintJSON(t *testing.T) {
 func TestPrint_JSON(t *testing.T) {
 	cmd := &cobra.Command{}
 	cmd.Flags().Bool("json", true, "JSON output")
-	cmd.Flags().Set("json", "true")
+	_ = cmd.Flags().Set("json", "true")
 
 	data := map[string]string{"test": "data"}
 	err := Print(cmd, data)
@@ -65,7 +65,7 @@ func TestPrint_Table(t *testing.T) {
 func TestPrintError_JSON(t *testing.T) {
 	cmd := &cobra.Command{}
 	cmd.Flags().Bool("json", true, "JSON output")
-	cmd.Flags().Set("json", "true")
+	_ = cmd.Flags().Set("json", "true")
 
 	err := PrintError(cmd, assert.AnError)
 	assert.NoError(t, err)
@@ -74,7 +74,7 @@ func TestPrintError_JSON(t *testing.T) {
 func TestPrintSuccess_JSON(t *testing.T) {
 	cmd := &cobra.Command{}
 	cmd.Flags().Bool("json", true, "JSON output")
-	cmd.Flags().Set("json", "true")
+	_ = cmd.Flags().Set("json", "true")
 
 	err := PrintSuccess(cmd, "success message")
 	assert.NoError(t, err)
