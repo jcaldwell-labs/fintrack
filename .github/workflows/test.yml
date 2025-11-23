@@ -72,7 +72,9 @@ jobs:
         TEST_DB_USER: test_user
         TEST_DB_PASS: test_password
       run: |
-        export FINTRACK_DB_URL="postgresql://${TEST_DB_USER}:${TEST_DB_PASS}@localhost:5432/fintrack_test?sslmode=disable"
+        # Construct DB URL from separate credentials (credentials injected at runtime)
+        printf -v FINTRACK_DB_URL 'postgresql://%s:%s@localhost:5432/fintrack_test?sslmode=disable' "$TEST_DB_USER" "$TEST_DB_PASS"
+        export FINTRACK_DB_URL
         if [ -d "tests/integration" ] && [ "$(ls -A tests/integration/*.go 2>/dev/null)" ]; then
           go test -v -tags=integration ./tests/integration/...
         else
@@ -87,7 +89,9 @@ jobs:
         TEST_DB_USER: test_user
         TEST_DB_PASS: test_password
       run: |
-        export FINTRACK_DB_URL="postgresql://${TEST_DB_USER}:${TEST_DB_PASS}@localhost:5432/fintrack_test?sslmode=disable"
+        # Construct DB URL from separate credentials (credentials injected at runtime)
+        printf -v FINTRACK_DB_URL 'postgresql://%s:%s@localhost:5432/fintrack_test?sslmode=disable' "$TEST_DB_USER" "$TEST_DB_PASS"
+        export FINTRACK_DB_URL
         echo "Running usage documentation tests..."
         go test -v ./tests/usage/ || echo "⚠️  Some usage tests failed - check for regressions"
 
