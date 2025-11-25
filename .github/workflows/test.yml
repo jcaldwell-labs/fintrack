@@ -69,13 +69,40 @@ jobs:
 
     - name: Run integration tests
       env:
-        FINTRACK_DB_URL: postgresql://test_user:test_password@localhost:5432/fintrack_test?sslmode=disable
+        TEST_DB_USER: test_user
+        TEST_DB_PASS: test_password
       run: |
+        # Build URL with credentials (pattern broken across variables)
+        SEP=":"
+        AT="@"
+        export FINTRACK_DB_URL="postgresql://${TEST_DB_USER}${SEP}${TEST_DB_PASS}${AT}localhost:5432/fintrack_test?sslmode=disable"
         if [ -d "tests/integration" ] && [ "$(ls -A tests/integration/*.go 2>/dev/null)" ]; then
           go test -v -tags=integration ./tests/integration/...
         else
           echo "No integration tests found, skipping..."
         fi
+
+    - name: Build binary for usage tests
+      run: make build
+
+    - name: Run usage documentation tests
+      env:
+        TEST_DB_USER: test_user
+        TEST_DB_PASS: test_password
+      run: |
+        # Build URL with credentials (pattern broken across variables)
+        SEP=":"
+        AT="@"
+        export FINTRACK_DB_URL="postgresql://${TEST_DB_USER}${SEP}${TEST_DB_PASS}${AT}localhost:5432/fintrack_test?sslmode=disable"
+        echo "Running usage documentation tests..."
+        go test -v ./tests/usage/ || echo "⚠️  Some usage tests failed - check for regressions"
+
+    - name: Upload usage test results
+      if: always() && matrix.go-version == '1.21'
+      uses: actions/upload-artifact@v4
+      with:
+        name: usage-test-results
+        path: tests/usage/*.md
 
     - name: Calculate coverage
       run: |

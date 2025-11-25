@@ -47,12 +47,16 @@ tests/integration (0 files)                          N/A
                     │     E2E      │  10% - Full CLI workflows
                     │   (Manual)   │
                     └──────────────┘
+                 ┌──────────────────┐
+                 │  Usage Tests     │  15% - Executable docs
+                 │ (Living Docs)    │
+                 └──────────────────┘
                    ┌────────────────┐
                    │  Integration   │  20% - DB + Repos + Commands
                    │     Tests      │
                    └────────────────┘
                 ┌──────────────────────┐
-                │    Unit Tests        │  70% - Business logic, utils
+                │    Unit Tests        │  55% - Business logic, utils
                 │  (Fast, Isolated)    │
                 └──────────────────────┘
 ```
@@ -209,6 +213,104 @@ assert_contains "$output" "Updated Checking"
 # Cleanup
 ./bin/fintrack account close 1
 ```
+
+### 4. Usage Documentation Tests (15% of tests)
+
+**Location:** `tests/usage/`
+```
+tests/usage/
+├── runner.go                   ← Test harness (parser & executor)
+├── usage_test.go               ← Go test runner
+└── 01-account-management.md    ← Executable documentation
+```
+
+**Characteristics:**
+- Medium speed (50-200ms per test)
+- Tests actual CLI binary against real database
+- Markdown format - human-readable and VCS-friendly
+- Self-documenting - serves as user documentation
+- Auto-updates with actual results
+- Wildcard support for dynamic values (IDs, dates, etc.)
+
+**What Makes Them Special:**
+Usage tests are **living documentation** - they're simultaneously:
+1. **User documentation** showing real command examples
+2. **Automated tests** validating behavior
+3. **Regression prevention** catching breaking changes
+4. **Onboarding material** for new contributors
+
+**Example:**
+```markdown
+## Test: Create a checking account
+**Purpose:** Verify users can create a basic checking account
+
+### Setup
+```bash
+# Clean slate
+fintrack account delete "Test Checking" 2>/dev/null || true
+```
+
+### Execute
+```bash
+fintrack account create "Test Checking" --type checking --balance 1000.00
+```
+
+### Expected Output
+```
+Account created successfully
+ID: <number>
+Name: Test Checking
+Type: checking
+Balance: <money>
+```
+
+### Actual Output (auto-updated)
+```
+Account created successfully
+ID: 42
+Name: Test Checking
+Type: checking
+Balance: $1,000.00
+```
+
+✅ PASS (last run: 2025-11-23)
+```
+
+**Wildcard Patterns:**
+- `<any>` - Matches any value
+- `<number>` - Matches integers (42, 1, 999)
+- `<date>` - Matches YYYY-MM-DD format
+- `<uuid>` - Matches UUID format
+- `<money>` - Matches currency ($1,234.56)
+
+**Running Usage Tests:**
+```bash
+# Run all usage tests
+make test-usage
+
+# Run and update markdown with results
+make test-usage-update
+
+# Run directly with Go
+go test -v ./tests/usage/
+
+# Run specific test file
+go test -v ./tests/usage/ -run TestUsageDocumentation
+```
+
+**When to Add Usage Tests:**
+1. Adding new CLI commands
+2. Changing output formats or error messages
+3. Fixing user-reported issues
+4. Documenting critical workflows
+5. Regression prevention for stable features
+
+**Benefits:**
+- **Catches real-world issues** - Tests actual binary, not mocks
+- **Always up-to-date** - Docs update automatically with test runs
+- **User-focused** - Tests what users actually see
+- **Prevents regressions** - Breaking changes caught immediately
+- **Better onboarding** - New devs see working examples
 
 ## 🔧 Testing Tools & Frameworks
 

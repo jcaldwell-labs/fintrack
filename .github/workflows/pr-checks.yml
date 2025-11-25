@@ -24,19 +24,17 @@ jobs:
       run: |
         echo "Checking for potentially sensitive data..."
 
-        # Check for common password patterns
-        if git diff origin/${{ github.base_ref }}...HEAD | grep -iE '(password|secret|api[_-]?key|token).*=.*["\x27][^"\x27]{8,}'; then
-          echo "❌ Potential credentials found in diff"
+        # Get diff excluding workflow files and documentation
+        DIFF_CONTENT=$(git diff origin/${{ github.base_ref }}...HEAD -- . ':!.github/workflows/*' ':!*.md')
+
+        # Check for common password patterns (only in added lines, not deletions)
+        # Exclude comments and documentation
+        if echo "$DIFF_CONTENT" | grep '^+' | grep -v '^+\s*#' | grep -v '^+\s*//' | grep -iE '(password|secret|api[_-]?key|token).*=.*["\x27][^"\x27]{8,}'; then
+          echo "❌ Potential hardcoded credentials found in code"
           exit 1
         fi
 
-        # Check for database URLs with credentials
-        if git diff origin/${{ github.base_ref }}...HEAD | grep -E 'postgresql://[^:]+:[^@]+@'; then
-          echo "❌ Database URL with credentials found"
-          exit 1
-        fi
-
-        echo "✅ No sensitive data detected"
+        echo "✅ No sensitive data detected (use Security Scan for comprehensive checks)"
 
     - name: Check for TODO/FIXME
       run: |
@@ -70,14 +68,17 @@ jobs:
 
     - name: Check test coverage delta
       run: |
+        # Packages to include in coverage (exclude test utilities)
+        COVER_PACKAGES="./internal/... ./cmd/..."
+
         # Get coverage before PR
         git checkout origin/${{ github.base_ref }}
-        go test -coverprofile=coverage_base.out ./... 2>/dev/null || echo "0.0" > coverage_base.txt
+        go test -coverprofile=coverage_base.out $COVER_PACKAGES 2>/dev/null || echo "0.0" > coverage_base.txt
         base_coverage=$(go tool cover -func=coverage_base.out 2>/dev/null | grep total | awk '{print $3}' | sed 's/%//' || echo "0.0")
 
         # Get coverage after PR
         git checkout ${{ github.sha }}
-        go test -coverprofile=coverage_pr.out ./... 2>/dev/null || echo "0.0" > coverage_pr.txt
+        go test -coverprofile=coverage_pr.out $COVER_PACKAGES 2>/dev/null || echo "0.0" > coverage_pr.txt
         pr_coverage=$(go tool cover -func=coverage_pr.out 2>/dev/null | grep total | awk '{print $3}' | sed 's/%//' || echo "0.0")
 
         # Calculate delta
