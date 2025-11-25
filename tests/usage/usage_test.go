@@ -27,9 +27,8 @@ func TestUsageDocumentation(t *testing.T) {
 func buildTestBinary(t *testing.T) string {
 	t.Helper()
 
-	// Create temp binary path
-	tmpDir := t.TempDir()
-	binaryPath := filepath.Join(tmpDir, "fintrack")
+	// Create temp directory for test artifacts
+	_ = t.TempDir() // Reserved for future use
 
 	// Build command would go here, but for now we'll use the installed binary
 	// In production, this should build from source

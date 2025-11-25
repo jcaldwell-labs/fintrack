@@ -292,8 +292,6 @@ func UpdateMarkdownFile(file *UsageTestFile) error {
 
 	lines := strings.Split(string(content), "\n")
 	var result strings.Builder
-	var inActualBlock bool
-	var inStatusLine bool
 	testIndex := 0
 
 	for i := 0; i < len(lines); i++ {
