@@ -439,6 +439,37 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - **Pull Requests:** [Contributions welcome!](https://github.com/jcaldwell-labs/fintrack/pulls)
 - **Discussions:** [Ask questions, share ideas](https://github.com/jcaldwell-labs/fintrack/discussions)
 
+## Related Projects
+
+FinTrack is part of the [jcaldwell-labs](https://github.com/jcaldwell-labs) organization. Check out these sister projects:
+
+### Terminal/TUI Tools
+| Project | Description |
+|---------|-------------|
+| [my-grid](https://github.com/jcaldwell-labs/my-grid) | ASCII canvas editor with vim-style navigation, zones, and PTY support |
+| [boxes-live](https://github.com/jcaldwell-labs/boxes-live) | Real-time ASCII box drawing with joystick support |
+| [terminal-stars](https://github.com/jcaldwell-labs/terminal-stars) | Starfield animation for terminals |
+| [atari-style](https://github.com/jcaldwell-labs/atari-style) | Retro visual effects and shaders for terminal apps |
+| [smartterm-prototype](https://github.com/jcaldwell-labs/smartterm-prototype) | Smart terminal with readline-like features |
+
+### CLI Tools
+| Project | Description |
+|---------|-------------|
+| [my-context](https://github.com/jcaldwell-labs/my-context) | Context tracking for development sessions |
+| [tario](https://github.com/jcaldwell-labs/tario) | Terminal-based platformer game |
+
+### Other
+| Project | Description |
+|---------|-------------|
+| [adventure-engine-v2](https://github.com/jcaldwell-labs/adventure-engine-v2) | Multiplayer text adventure engine (C) |
+| [capability-catalog](https://github.com/jcaldwell-labs/capability-catalog) | Skill/capability definitions for AI agents |
+
+### Synergies
+
+- **my-context + fintrack**: Use my-context to track your fintrack development sessions and financial review workflows
+- **atari-style + fintrack TUI**: Future fintrack TUI dashboard could leverage atari-style shaders for retro budget visualizations
+- **smartterm-prototype + fintrack**: Enhanced readline features could improve fintrack's interactive input experience
+
 ## Acknowledgments
 
 Inspired by:

@@ -93,6 +93,37 @@ Config file: `~/.config/fintrack/config.yaml`
 
 https://github.com/jcaldwell-labs/fintrack
 
+## Related jcaldwell-labs Projects
+
+FinTrack is part of a family of terminal-focused tools. These projects share design philosophies and can work together:
+
+### Terminal/TUI Projects
+- **my-grid**: ASCII canvas editor with vim-style navigation, zones, PTY support
+- **boxes-live**: Real-time ASCII box drawing with joystick support
+- **terminal-stars**: Starfield animation for terminals
+- **atari-style**: Retro visual effects and shaders for terminal apps
+- **smartterm-prototype**: Smart terminal with readline-like features
+
+### CLI Tools
+- **my-context**: Context tracking for development sessions (Go CLI)
+- **tario**: Terminal-based platformer game (Go)
+
+### Game Engines
+- **adventure-engine-v2**: Multiplayer text adventure engine (C)
+
+### Meta/Organization
+- **capability-catalog**: Skill/capability definitions for AI agents
+
+### Project Synergies
+
+When building or extending fintrack, consider these cross-project opportunities:
+
+1. **my-context + fintrack**: Use my-context to track fintrack development sessions and financial review workflows
+2. **atari-style + fintrack TUI**: Future TUI dashboard could use atari-style shaders for retro budget visualizations
+3. **smartterm-prototype + fintrack**: Enhanced readline features could improve interactive input experience
+4. **my-grid + fintrack**: ASCII budget visualizations and custom financial dashboards
+5. **terminal-stars + fintrack**: Celebratory animations when hitting savings goals
+
 ## License
 
 MIT
