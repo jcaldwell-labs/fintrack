@@ -1,0 +1,98 @@
+# FinTrack
+
+> Terminal-based personal finance tracking and budgeting application
+
+## What is FinTrack?
+
+FinTrack is a command-line tool for managing personal finances following Unix philosophy principles. All data stays local in PostgreSQL - no cloud accounts, no tracking, no data harvesting. Track transactions, set budgets, schedule recurring expenses, and project cash flow from your terminal.
+
+## Key Capabilities
+
+- **Account Management**: Create, list, update, and close checking, savings, credit, cash, investment, and loan accounts
+- **Transaction Tracking**: Record income/expenses with categories, payees, tags, and notes
+- **Category Management**: Hierarchical categories with system defaults and custom additions
+- **JSON Output**: All commands support `--json` for scripting and automation
+- **Cross-Platform**: Single Go binary for Linux, macOS, and Windows
+
+## Quick Start
+
+```bash
+# Install
+git clone https://github.com/jcaldwell-labs/fintrack.git
+cd fintrack && make build && make install
+
+# Configure database
+export FINTRACK_DB_URL="postgresql://localhost:5432/fintrack"
+
+# Create account
+fintrack account add "Checking" --type checking --balance 5000
+
+# Add transaction
+fintrack tx add -50.00 --account "Checking" --category "Groceries" --payee "Store"
+
+# List transactions
+fintrack tx list --json
+```
+
+## Common Commands
+
+```bash
+# Account operations
+fintrack account list                    # List all accounts
+fintrack account add "Name" -t checking  # Create account
+fintrack account show 1                  # Show account details
+fintrack account close 1                 # Close account
+
+# Transaction operations
+fintrack tx add -100 -a "Checking" -c "Food"  # Add expense
+fintrack tx list --account "Checking"         # Filter by account
+fintrack tx list --category "Food"            # Filter by category
+fintrack tx list --json | jq '.[]'            # JSON for scripting
+
+# Category operations
+fintrack category list                   # List categories
+fintrack category add "Custom" expense   # Add category
+```
+
+## Use Cases
+
+1. **Developer Budgeting**: Track expenses from terminal, script reports, integrate with cron
+2. **Privacy-Conscious Finance**: No cloud sync, local PostgreSQL, full data ownership
+3. **Automation**: JSON output pipes to jq, scripts, dashboards
+4. **Migration from Mint/YNAB**: CSV import, open format, no vendor lock-in
+
+## Architecture
+
+- **Language**: Go 1.21+ (single binary distribution)
+- **Database**: PostgreSQL 12+ with GORM ORM
+- **CLI Framework**: Cobra with Viper configuration
+- **Structure**: Repository pattern, co-located tests, 45%+ coverage
+
+```
+internal/
+├── commands/     # Cobra command implementations
+├── config/       # Viper configuration
+├── db/           # Database layer and repositories
+├── models/       # GORM domain models
+└── output/       # Table/JSON formatters
+```
+
+## Configuration
+
+Environment variables: `FINTRACK_DB_URL`, `FINTRACK_DB_HOST`, `FINTRACK_DB_PASSWORD`
+Config file: `~/.config/fintrack/config.yaml`
+
+## Documentation
+
+- README.md - Installation, features, quick start
+- CLAUDE.md - Complete command reference and architecture
+- docs/FINTRACK_QUICKREF.md - Command cheat sheet
+- docs/FINANCE_TRACKER_PLAN.md - System design
+
+## Repository
+
+https://github.com/jcaldwell-labs/fintrack
+
+## License
+
+MIT

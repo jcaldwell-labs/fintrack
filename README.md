@@ -4,10 +4,26 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-blue.svg)](https://golang.org)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/jcaldwell-labs/fintrack/pulls)
 
-FinTrack is a command-line tool for managing personal finances following Unix philosophy principles. Track transactions, set budgets, schedule recurring expenses, and project cash flow - all from your terminal with complete privacy.
+**Status:** Phase 1 (MVP) - In Development
 
-**Status:** 🚧 Phase 1 (MVP) - In Development
+## Why FinTrack?
+
+*Your finances. Your terminal. Your control.*
+
+Traditional personal finance apps require cloud accounts, sync your sensitive data to third-party servers, and lock you into proprietary formats. FinTrack is different:
+
+- **Privacy-first**: All data stays local in your PostgreSQL database. No cloud accounts, no tracking, no data harvesting
+- **Unix philosophy**: Composable commands, text output, JSON for scripting. Pipe, grep, and automate your finances
+- **Developer-friendly**: Single binary, cross-platform, scriptable. Integrates with your existing CLI workflow
+- **Full control**: Export your data anytime. No vendor lock-in. Open source forever
+
+**Perfect for:**
+- Developers who live in the terminal
+- Privacy-conscious users who don't want their financial data in the cloud
+- Power users who want to script and automate their budgeting
+- Anyone migrating from Mint, YNAB, or spreadsheets who wants more control
 
 ## Features
 
@@ -20,13 +36,32 @@ FinTrack is a command-line tool for managing personal finances following Unix ph
 - ✅ Cross-platform support (Linux, macOS, Windows)
 
 ### Coming Soon
-- 🔄 CSV import with bank-specific mappings
-- 🔄 Budget tracking with alerts
-- 🔄 Recurring transaction scheduling
-- 🔄 Cash flow projections
-- 🔄 Financial reports and analytics
-- 🔄 Calendar view
-- 🔄 Reminder system
+- CSV import with bank-specific mappings
+- Budget tracking with alerts
+- Recurring transaction scheduling
+- Cash flow projections
+- Financial reports and analytics
+- Calendar view
+- Reminder system
+
+## Demo
+
+<!-- TODO: Add asciinema recording -->
+
+**Try it yourself:**
+```bash
+# Create your first account
+fintrack account add "Checking" --type checking --balance 5000
+
+# Add a transaction
+fintrack tx add -50.00 --account "Checking" --category "Groceries" --payee "Walmart"
+
+# See your accounts
+fintrack account list
+
+# Get JSON for scripting
+fintrack tx list --json | jq '.[] | select(.category == "Groceries")'
+```
 
 ## Quick Start
 
@@ -335,51 +370,33 @@ The application uses a comprehensive PostgreSQL schema with:
 
 See `../fintrack_schema.sql` for the complete schema.
 
+## Comparison
+
+| Feature | FinTrack | Mint/YNAB | Ledger-CLI | Spreadsheets |
+|---------|----------|-----------|------------|--------------|
+| Local-first data | ✅ | ❌ | ✅ | ✅ |
+| No cloud account | ✅ | ❌ | ✅ | ❌ (Google/MS) |
+| JSON output | ✅ | ❌ | ❌ | ❌ |
+| Scriptable CLI | ✅ | ❌ | ✅ | ❌ |
+| ACID database | ✅ | ? | ❌ (text) | ❌ |
+| Budgeting | 🔄 | ✅ | ❌ | Manual |
+| Bank import | 🔄 | ✅ | ✅ | Manual |
+| Cross-platform | ✅ | Web | ✅ | Web |
+| Open source | ✅ | ❌ | ✅ | ❌ |
+
 ## Roadmap
 
-### Phase 1: Core Foundation (Current)
-- [x] Project setup and structure
-- [x] Database connection and models
-- [x] Account CRUD operations
-- [x] Transaction CRUD operations
-- [x] Category management
-- [ ] CSV import (generic format)
-- [ ] Basic reporting
+See [.github/planning/ROADMAP.md](.github/planning/ROADMAP.md) for the detailed implementation roadmap.
 
-**Timeline:** 4-6 weeks
+**Current Phase:** Phase 1 - Core Foundation (MVP)
 
-### Phase 2: Budgeting & Scheduling
-- [ ] Budget tracking with alerts
-- [ ] Recurring transaction templates
-- [ ] Reminder system
-- [ ] Calendar view
-
-**Timeline:** 3-4 weeks
-
-### Phase 3: Projections & Analytics
-- [ ] Cash flow projection engine
-- [ ] Trend analysis
-- [ ] Savings rate calculation
-
-**Timeline:** 4-5 weeks
-
-### Phase 4: Advanced Features
-- [ ] Bank-specific CSV mappings
-- [ ] Multi-currency support
-- [ ] Split transactions
-- [ ] Plaid integration (optional)
-
-**Timeline:** 5-6 weeks
-
-### Phase 5: Polish & Optimization
-- [ ] Interactive TUI mode
-- [ ] Shell completion
-- [ ] Performance optimization
-- [ ] Professional packaging
-
-**Timeline:** 3-4 weeks
-
-See `../FINTRACK_ROADMAP.md` for detailed implementation plan.
+| Phase | Focus | Status |
+|-------|-------|--------|
+| Phase 1 | Core Foundation (accounts, transactions, categories) | In Progress |
+| Phase 2 | Budgeting & Scheduling | Planned |
+| Phase 3 | Projections & Analytics | Planned |
+| Phase 4 | Advanced Features (multi-currency, Plaid) | Planned |
+| Phase 5 | Polish & Optimization (TUI, shell completion) | Planned |
 
 ## Contributing
 
@@ -405,18 +422,22 @@ This project follows test-driven development (TDD):
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
-## Related Documentation
+## Documentation
 
-- **Planning:** `../FINANCE_TRACKER_PLAN.md` - Complete system design
-- **Schema:** `../fintrack_schema.sql` - Database schema
-- **Quick Reference:** `../FINTRACK_QUICKREF.md` - Command cheat sheet
-- **Roadmap:** `../FINTRACK_ROADMAP.md` - Implementation timeline
-- **Config Example:** `../fintrack_config.example.yaml` - Full configuration
+| Document | Description |
+|----------|-------------|
+| [Quick Reference](docs/FINTRACK_QUICKREF.md) | Command cheat sheet |
+| [System Design](docs/FINANCE_TRACKER_PLAN.md) | Complete architecture |
+| [Roadmap](.github/planning/ROADMAP.md) | Implementation timeline |
+| [Contributing](CONTRIBUTING.md) | How to contribute |
+| [Testing](TESTING.md) | Test strategy and coverage |
+| [Security](SECURITY.md) | Security guidelines |
 
-## Support
+## Community
 
-- **Issues:** [GitHub Issues](https://github.com/fintrack/fintrack/issues)
-- **Documentation:** See planning docs in parent directory
+- **Issues:** [Report bugs or request features](https://github.com/jcaldwell-labs/fintrack/issues)
+- **Pull Requests:** [Contributions welcome!](https://github.com/jcaldwell-labs/fintrack/pulls)
+- **Discussions:** [Ask questions, share ideas](https://github.com/jcaldwell-labs/fintrack/discussions)
 
 ## Acknowledgments
 
@@ -427,4 +448,4 @@ Inspired by:
 
 ---
 
-**Built with ❤️ following Unix philosophy principles**
+**Built with Unix philosophy principles: do one thing well, composable, text-based**
