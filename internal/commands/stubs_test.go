@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-
 func TestNewBudgetCmd(t *testing.T) {
 	cmd := NewBudgetCmd()
 	assert.NotNil(t, cmd)

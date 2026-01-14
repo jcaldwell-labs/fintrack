@@ -11,15 +11,15 @@ import (
 
 // TransactionFilter contains filter options for listing transactions
 type TransactionFilter struct {
-	AccountID   *uint
-	CategoryID  *uint
-	Type        string
-	DateFrom    *time.Time
-	DateTo      *time.Time
-	Payee       string
+	AccountID    *uint
+	CategoryID   *uint
+	Type         string
+	DateFrom     *time.Time
+	DateTo       *time.Time
+	Payee        string
 	IsReconciled *bool
-	Limit       int
-	Offset      int
+	Limit        int
+	Offset       int
 }
 
 // TransactionRepository handles transaction data operations

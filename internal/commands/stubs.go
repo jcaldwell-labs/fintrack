@@ -6,7 +6,6 @@ import (
 
 // Stub implementations for commands not yet implemented
 
-
 func NewBudgetCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:     "budget",
