@@ -83,15 +83,6 @@ func NewCalendarCmd() *cobra.Command {
 	}
 }
 
-func NewImportCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "import",
-		Short: "Import data from CSV (coming soon)",
-		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Println("CSV import coming soon!")
-		},
-	}
-}
 
 func NewConfigCmd() *cobra.Command {
 	cmd := &cobra.Command{
