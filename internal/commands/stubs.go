@@ -6,16 +6,6 @@ import (
 
 // Stub implementations for commands not yet implemented
 
-func NewTransactionCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:     "tx",
-		Aliases: []string{"t"},
-		Short:   "Manage transactions (coming soon)",
-		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Println("Transaction management coming soon!")
-		},
-	}
-}
 
 func NewBudgetCmd() *cobra.Command {
 	return &cobra.Command{
