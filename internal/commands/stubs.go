@@ -72,7 +72,6 @@ func NewCalendarCmd() *cobra.Command {
 	}
 }
 
-
 func NewConfigCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config",

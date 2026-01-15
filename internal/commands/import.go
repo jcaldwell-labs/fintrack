@@ -18,7 +18,7 @@ func NewImportCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "import",
 		Short: "Import data from external files",
-		Long: "Import transactions from CSV files.",
+		Long:  "Import transactions from CSV files.",
 	}
 
 	cmd.AddCommand(newImportCSVCmd())
@@ -44,8 +44,8 @@ func newImportCSVCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "csv FILE",
 		Short: "Import transactions from CSV file",
-		Long: "Import transactions from CSV files.",
-		Args: cobra.ExactArgs(1),
+		Long:  "Import transactions from CSV files.",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			filePath := args[0]
 
