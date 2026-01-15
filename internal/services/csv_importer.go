@@ -108,7 +108,10 @@ func (i *CSVImporter) Import(filePath string, opts ImportOptions) (*ImportResult
 		}
 	}
 
-	file.Seek(0, 0)
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		return nil, fmt.Errorf("failed to reset file position: %w", err)
+	}
 
 	result, err := i.parseCSV(file, account, opts)
 	if err != nil {
