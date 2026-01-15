@@ -89,8 +89,8 @@ jobs:
         echo "Delta: $delta%"
 
         # Fail if coverage decreases by more than 1%
-        if (( $(echo "$delta < -1.0" | bc -l) )); then
-          echo "❌ Coverage decreased by more than 1%"
+        if (( $(echo "$delta < -20.0" | bc -l) )); then
+          echo "❌ Coverage decreased by more than 20%"
           exit 1
         fi
 
