@@ -35,13 +35,32 @@ func NewTransactionRepository(db *gorm.DB) *TransactionRepository {
 // Create creates a new transaction and updates the account balance
 func (r *TransactionRepository) Create(tx *models.Transaction) error {
 	return r.db.Transaction(func(dbTx *gorm.DB) error {
-		// Create the transaction
 		if err := dbTx.Create(tx).Error; err != nil {
 			return err
 		}
-
-		// Update account balance
 		return r.updateAccountBalance(dbTx, tx.AccountID, tx.Amount)
+	})
+}
+
+// CreateBatch creates multiple transactions in a single operation
+func (r *TransactionRepository) CreateBatch(txs []*models.Transaction, batchSize int) error {
+	if batchSize <= 0 {
+		batchSize = 100
+	}
+	return r.db.Transaction(func(dbTx *gorm.DB) error {
+		if err := dbTx.CreateInBatches(txs, batchSize).Error; err != nil {
+			return err
+		}
+		accountTotals := make(map[uint]float64)
+		for _, tx := range txs {
+			accountTotals[tx.AccountID] += tx.Amount
+		}
+		for accountID, total := range accountTotals {
+			if err := r.updateAccountBalance(dbTx, accountID, total); err != nil {
+				return err
+			}
+		}
+		return nil
 	})
 }
 
@@ -63,7 +82,6 @@ func (r *TransactionRepository) List(filter TransactionFilter) ([]*models.Transa
 	var transactions []*models.Transaction
 	query := r.db.Preload("Account").Preload("Category")
 
-	// Apply filters
 	if filter.AccountID != nil {
 		query = query.Where("account_id = ?", *filter.AccountID)
 	}
@@ -85,8 +103,6 @@ func (r *TransactionRepository) List(filter TransactionFilter) ([]*models.Transa
 	if filter.IsReconciled != nil {
 		query = query.Where("is_reconciled = ?", *filter.IsReconciled)
 	}
-
-	// Apply pagination
 	if filter.Limit > 0 {
 		query = query.Limit(filter.Limit)
 	}
@@ -116,35 +132,23 @@ func (r *TransactionRepository) ListByDateRange(from, to time.Time, limit int) (
 // Update updates a transaction and adjusts account balance if amount changed
 func (r *TransactionRepository) Update(tx *models.Transaction) error {
 	return r.db.Transaction(func(dbTx *gorm.DB) error {
-		// Get the original transaction to calculate balance adjustment
 		var original models.Transaction
 		if err := dbTx.First(&original, tx.ID).Error; err != nil {
 			return err
 		}
-
-		// Calculate the balance difference
 		balanceDiff := tx.Amount - original.Amount
-
-		// Update the transaction
 		if err := dbTx.Save(tx).Error; err != nil {
 			return err
 		}
-
-		// Adjust account balance if amount changed
 		if balanceDiff != 0 {
-			// If account changed, revert old account and update new
 			if original.AccountID != tx.AccountID {
-				// Revert original account
 				if err := r.updateAccountBalance(dbTx, original.AccountID, -original.Amount); err != nil {
 					return err
 				}
-				// Update new account
 				return r.updateAccountBalance(dbTx, tx.AccountID, tx.Amount)
 			}
-			// Same account, just apply the difference
 			return r.updateAccountBalance(dbTx, tx.AccountID, balanceDiff)
 		}
-
 		return nil
 	})
 }
@@ -152,7 +156,6 @@ func (r *TransactionRepository) Update(tx *models.Transaction) error {
 // Delete deletes a transaction and adjusts the account balance
 func (r *TransactionRepository) Delete(id uint) error {
 	return r.db.Transaction(func(dbTx *gorm.DB) error {
-		// Get the transaction first
 		var tx models.Transaction
 		if err := dbTx.First(&tx, id).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -160,26 +163,20 @@ func (r *TransactionRepository) Delete(id uint) error {
 			}
 			return err
 		}
-
-		// Delete the transaction
 		if err := dbTx.Delete(&models.Transaction{}, id).Error; err != nil {
 			return err
 		}
-
-		// Revert the account balance
 		return r.updateAccountBalance(dbTx, tx.AccountID, -tx.Amount)
 	})
 }
 
-// GetTotalByAccount calculates total amount for an account (optionally filtered by type)
+// GetTotalByAccount calculates total amount for an account
 func (r *TransactionRepository) GetTotalByAccount(accountID uint, txType string) (float64, error) {
 	var total float64
 	query := r.db.Model(&models.Transaction{}).Where("account_id = ?", accountID)
-
 	if txType != "" {
 		query = query.Where("type = ?", txType)
 	}
-
 	err := query.Select("COALESCE(SUM(amount), 0)").Scan(&total).Error
 	return total, err
 }
@@ -188,14 +185,12 @@ func (r *TransactionRepository) GetTotalByAccount(accountID uint, txType string)
 func (r *TransactionRepository) GetTotalByCategory(categoryID uint, from, to *time.Time) (float64, error) {
 	var total float64
 	query := r.db.Model(&models.Transaction{}).Where("category_id = ?", categoryID)
-
 	if from != nil {
 		query = query.Where("date >= ?", *from)
 	}
 	if to != nil {
 		query = query.Where("date <= ?", *to)
 	}
-
 	err := query.Select("COALESCE(SUM(amount), 0)").Scan(&total).Error
 	return total, err
 }
@@ -225,7 +220,6 @@ func (r *TransactionRepository) Unreconcile(id uint) error {
 func (r *TransactionRepository) Count(filter TransactionFilter) (int64, error) {
 	var count int64
 	query := r.db.Model(&models.Transaction{})
-
 	if filter.AccountID != nil {
 		query = query.Where("account_id = ?", *filter.AccountID)
 	}
@@ -241,9 +235,75 @@ func (r *TransactionRepository) Count(filter TransactionFilter) (int64, error) {
 	if filter.DateTo != nil {
 		query = query.Where("date <= ?", *filter.DateTo)
 	}
-
 	err := query.Count(&count).Error
 	return count, err
+}
+
+// DuplicateCheck holds the fields used for duplicate detection
+type DuplicateCheck struct {
+	Date        time.Time
+	Amount      float64
+	Description string
+}
+
+// FindDuplicate checks if a transaction with the same date, amount, and description exists
+func (r *TransactionRepository) FindDuplicate(accountID uint, check DuplicateCheck) (*models.Transaction, error) {
+	var tx models.Transaction
+	dateStart := time.Date(check.Date.Year(), check.Date.Month(), check.Date.Day(), 0, 0, 0, 0, check.Date.Location())
+	dateEnd := dateStart.Add(24 * time.Hour)
+
+	err := r.db.Where(
+		"account_id = ? AND date >= ? AND date < ? AND amount = ? AND description = ?",
+		accountID, dateStart, dateEnd, check.Amount, check.Description,
+	).First(&tx).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &tx, nil
+}
+
+// FindDuplicates checks multiple transactions for duplicates in batch
+func (r *TransactionRepository) FindDuplicates(accountID uint, checks []DuplicateCheck) (map[int]bool, error) {
+	result := make(map[int]bool)
+	for i, check := range checks {
+		dup, err := r.FindDuplicate(accountID, check)
+		if err != nil {
+			return nil, err
+		}
+		result[i] = dup != nil
+	}
+	return result, nil
+}
+
+// CountByImportID counts transactions linked to a specific import
+func (r *TransactionRepository) CountByImportID(importID uint) (int64, error) {
+	var count int64
+	err := r.db.Model(&models.Transaction{}).Where("import_id = ?", importID).Count(&count).Error
+	return count, err
+}
+
+// GetSummaryByAccount returns transaction summary for an account
+func (r *TransactionRepository) GetSummaryByAccount(accountID uint) (int64, float64, error) {
+	var count int64
+	var sum float64
+
+	err := r.db.Model(&models.Transaction{}).
+		Where("account_id = ?", accountID).
+		Count(&count).Error
+	if err != nil {
+		return 0, 0, err
+	}
+
+	err = r.db.Model(&models.Transaction{}).
+		Where("account_id = ?", accountID).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&sum).Error
+
+	return count, sum, err
 }
 
 // updateAccountBalance updates an account's current balance

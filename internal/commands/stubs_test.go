@@ -101,14 +101,14 @@ func TestNewImportCmd(t *testing.T) {
 	cmd := NewImportCmd()
 	assert.NotNil(t, cmd)
 	assert.Equal(t, "import", cmd.Use)
-	assert.Equal(t, "Import data from CSV (coming soon)", cmd.Short)
-	assert.NotNil(t, cmd.Run)
+	assert.Equal(t, "Import data from external files", cmd.Short)
 
-	buf := new(bytes.Buffer)
-	cmd.SetOut(buf)
-	assert.NotPanics(t, func() {
-		cmd.Run(cmd, []string{})
-	})
+	// Check for subcommands
+	csvCmd, _, _ := cmd.Find([]string{"csv"})
+	assert.NotNil(t, csvCmd)
+
+	histCmd, _, _ := cmd.Find([]string{"history"})
+	assert.NotNil(t, histCmd)
 }
 
 func TestNewConfigCmd(t *testing.T) {
