@@ -3,8 +3,8 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
-      - 'v*-rc*'
+      - "v*"
+      - "v*-rc*"
   workflow_dispatch:
 
 permissions:
@@ -37,7 +37,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: "1.21"
 
       - name: Build binary
         env:
