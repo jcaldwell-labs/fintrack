@@ -2,12 +2,9 @@ package db
 
 import (
 	"testing"
-	"time"
 
-	"github.com/fintrack/fintrack/internal/config"
 	"github.com/fintrack/fintrack/internal/models"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
