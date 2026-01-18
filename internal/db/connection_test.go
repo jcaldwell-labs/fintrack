@@ -2,9 +2,12 @@ package db
 
 import (
 	"testing"
+	"time"
 
+	"github.com/fintrack/fintrack/internal/config"
 	"github.com/fintrack/fintrack/internal/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -135,4 +138,72 @@ func TestIsConnected_AfterClose(t *testing.T) {
 	// Check if connected (should be false after closing)
 	connected := IsConnected()
 	assert.False(t, connected)
+}
+
+func TestSetTestDB(t *testing.T) {
+	// Save original db
+	originalDB := db
+	origOriginalDB := originalDB
+	defer func() {
+		db = originalDB
+		originalDB = origOriginalDB
+	}()
+
+	// Create a test database
+	testDB, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	assert.NoError(t, err)
+
+	// Set the test DB
+	SetTestDB(testDB)
+	assert.Equal(t, testDB, db)
+}
+
+func TestResetTestDB(t *testing.T) {
+	// Save original state
+	savedDB := db
+	savedOriginalDB := originalDB
+	defer func() {
+		db = savedDB
+		originalDB = savedOriginalDB
+	}()
+
+	// Create test databases
+	testDB1, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	assert.NoError(t, err)
+	testDB2, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	assert.NoError(t, err)
+
+	// Set initial state
+	db = testDB1
+	originalDB = nil
+
+	// Set test DB (should save original)
+	SetTestDB(testDB2)
+	assert.Equal(t, testDB2, db)
+	assert.Equal(t, testDB1, originalDB)
+
+	// Reset should restore original
+	ResetTestDB()
+	assert.Equal(t, testDB1, db)
+	assert.Nil(t, originalDB)
+}
+
+func TestResetTestDB_WhenNoOriginal(t *testing.T) {
+	// Save original state
+	savedDB := db
+	savedOriginalDB := originalDB
+	defer func() {
+		db = savedDB
+		originalDB = savedOriginalDB
+	}()
+
+	testDB, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	assert.NoError(t, err)
+
+	db = testDB
+	originalDB = nil
+
+	// Reset when no original should be a no-op
+	ResetTestDB()
+	assert.Equal(t, testDB, db)
 }
