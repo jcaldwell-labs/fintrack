@@ -99,7 +99,7 @@ jobs:
 
       - name: Upload usage test results
         if: always() && matrix.go-version == '1.23'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: usage-test-results
           path: tests/usage/*.md
@@ -143,7 +143,7 @@ jobs:
 
       - name: Upload coverage report
         if: matrix.go-version == '1.23'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-report
           path: coverage.html

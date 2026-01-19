@@ -50,7 +50,7 @@ jobs:
         run: sha256sum ${{ matrix.output }} > ${{ matrix.output }}.sha256
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.output }}
           path: |
