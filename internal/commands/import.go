@@ -110,7 +110,7 @@ func newImportCSVCmd() *cobra.Command {
 	cmd.Flags().BoolVar(&skipDuplicates, "skip-duplicates", false, "Skip duplicate transactions")
 	cmd.Flags().IntVar(&batchSize, "batch-size", 100, "Batch size for database inserts")
 
-	_ = cmd.MarkFlagRequired("account")
+	mustMarkRequired(cmd, "account")
 
 	return cmd
 }

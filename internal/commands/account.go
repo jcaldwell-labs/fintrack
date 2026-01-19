@@ -11,6 +11,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// mustMarkRequired marks a flag as required, panicking if the flag doesn't exist.
+// This catches programmer errors (typos in flag names) during development.
+func mustMarkRequired(cmd *cobra.Command, name string) {
+	if err := cmd.MarkFlagRequired(name); err != nil {
+		panic(fmt.Sprintf("failed to mark flag %q as required: %v", name, err))
+	}
+}
+
 // NewAccountCmd creates the account command
 func NewAccountCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -154,7 +162,7 @@ func newAccountAddCmd() *cobra.Command {
 	cmd.Flags().StringVar(&institution, "institution", "", "Financial institution name")
 	cmd.Flags().StringVar(&notes, "notes", "", "Additional notes")
 
-	_ = cmd.MarkFlagRequired("type")
+	mustMarkRequired(cmd, "type")
 
 	return cmd
 }

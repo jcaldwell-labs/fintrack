@@ -45,12 +45,12 @@ Name: Test Checking
 ```
 
 ### Actual Output (auto-updated)
-
+### Actual Output (auto-updated)
 ```
 
 ```
 
-❌ FAIL (last run: 2026-01-19)
+✅ PASS (last run: 2026-01-19)
 
 ````
 
@@ -235,7 +235,7 @@ Output with <wildcards>
 ```
 
 ### Actual Output (auto-updated)
-
+### Actual Output (auto-updated)
 ```
 
 ```
@@ -334,3 +334,4 @@ See:
 - Example tests: `/tests/usage/01-account-management.md`
 
 ```
+

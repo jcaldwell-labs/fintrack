@@ -273,8 +273,8 @@ func newTransactionAddCmd() *cobra.Command {
 	cmd.Flags().StringVar(&date, "date", "", "Transaction date (YYYY-MM-DD, default: today)")
 	cmd.Flags().StringVar(&tags, "tags", "", "Comma-separated tags")
 
-	_ = cmd.MarkFlagRequired("account")
-	_ = cmd.MarkFlagRequired("amount")
+	mustMarkRequired(cmd, "account")
+	mustMarkRequired(cmd, "amount")
 
 	return cmd
 }

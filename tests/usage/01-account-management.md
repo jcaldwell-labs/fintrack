@@ -39,7 +39,7 @@ Balance: <money>
 ```
 
 ### Actual Output (auto-updated)
-
+### Actual Output (auto-updated)
 ```
 
 ```
@@ -73,7 +73,7 @@ ID    Name                  Type       Balance      Currency  Status
 ```
 
 ### Actual Output (auto-updated)
-
+### Actual Output (auto-updated)
 ```
 
 ```
@@ -116,7 +116,7 @@ Created:         <date>
 ```
 
 ### Actual Output (auto-updated)
-
+### Actual Output (auto-updated)
 ```
 
 ```
@@ -153,7 +153,7 @@ Balance: <money>
 ```
 
 ### Actual Output (auto-updated)
-
+### Actual Output (auto-updated)
 ```
 
 ```
@@ -189,7 +189,7 @@ Status: inactive
 ```
 
 ### Actual Output (auto-updated)
-
+### Actual Output (auto-updated)
 ```
 
 ```
@@ -231,7 +231,7 @@ fintrack account list --json
 ```
 
 ### Actual Output (auto-updated)
-
+### Actual Output (auto-updated)
 ```
 
 ```
@@ -263,7 +263,7 @@ Error: invalid account type "invalid_type". Valid types: checking, savings, cred
 ```
 
 ### Actual Output (auto-updated)
-
+### Actual Output (auto-updated)
 ```
 
 ```
@@ -296,7 +296,7 @@ Error: account with name "Duplicate Name" already exists
 ```
 
 ### Actual Output (auto-updated)
-
+### Actual Output (auto-updated)
 ```
 
 ```
@@ -355,3 +355,4 @@ These usage tests are designed to:
 - PASS/FAIL status is tracked with timestamps
 - Failed tests show diffs to help debug issues
 - Markdown format is human-readable and VCS-friendly
+
