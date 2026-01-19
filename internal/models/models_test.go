@@ -335,3 +335,58 @@ func TestImportHistory_Structure(t *testing.T) {
 	assert.Equal(t, 3, importHistory.RecordsSkipped)
 	assert.Equal(t, 2, importHistory.RecordsFailed)
 }
+
+func TestDollarsToCents(t *testing.T) {
+	tests := []struct {
+		dollars  float64
+		expected int64
+	}{
+		{0.00, 0},
+		{1.00, 100},
+		{10.50, 1050},
+		{-25.99, -2599},
+		{0.01, 1},
+		{0.10, 10},
+		{1234.56, 123456},
+		{-1234.56, -123456},
+		// Edge cases with floating point
+		{0.1, 10},
+		{0.2, 20},
+	}
+
+	for _, tt := range tests {
+		result := DollarsToCents(tt.dollars)
+		assert.Equal(t, tt.expected, result, "DollarsToCents(%f)", tt.dollars)
+	}
+}
+
+func TestCentsToDollars(t *testing.T) {
+	tests := []struct {
+		cents    int64
+		expected float64
+	}{
+		{0, 0.00},
+		{100, 1.00},
+		{1050, 10.50},
+		{-2599, -25.99},
+		{1, 0.01},
+		{10, 0.10},
+		{123456, 1234.56},
+		{-123456, -1234.56},
+	}
+
+	for _, tt := range tests {
+		result := CentsToDollars(tt.cents)
+		assert.Equal(t, tt.expected, result, "CentsToDollars(%d)", tt.cents)
+	}
+}
+
+func TestMoneyPrecision(t *testing.T) {
+	// Classic floating point precision test: 0.1 + 0.2 should equal 0.3
+	// Using cents avoids this problem
+	a := DollarsToCents(0.10)
+	b := DollarsToCents(0.20)
+	sum := a + b
+	assert.Equal(t, int64(30), sum, "0.10 + 0.20 in cents should be 30")
+	assert.Equal(t, 0.30, CentsToDollars(sum), "30 cents should convert back to 0.30")
+}

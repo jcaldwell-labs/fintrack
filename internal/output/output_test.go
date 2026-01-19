@@ -214,3 +214,41 @@ func TestResponse_Error(t *testing.T) {
 	assert.Contains(t, string(data), "error")
 	assert.Contains(t, string(data), "test error")
 }
+
+func TestFormatCurrencyCents_WithThousandSeparators(t *testing.T) {
+	tests := []struct {
+		cents    int64
+		expected string
+	}{
+		{100, "$1.00"},               // Simple
+		{99999, "$999.99"},           // Just under 1000 dollars
+		{100000, "$1,000.00"},        // Exactly 1000 dollars
+		{123456, "$1,234.56"},        // 4 digits dollars
+		{1234567, "$12,345.67"},      // 5 digits dollars
+		{12345678, "$123,456.78"},    // 6 digits dollars
+		{123456789, "$1,234,567.89"}, // 7 digits dollars - millions
+		{-100000, "-$1,000.00"},      // Negative with thousands
+		{-12345678, "-$123,456.78"},  // Negative millions
+	}
+
+	for _, tt := range tests {
+		result := FormatCurrencyCents(tt.cents, "USD")
+		assert.Equal(t, tt.expected, result, "FormatCurrencyCents(%d)", tt.cents)
+	}
+}
+
+func TestPrintError_Table(t *testing.T) {
+	cmd := &cobra.Command{}
+	cmd.Flags().Bool("json", false, "JSON output")
+
+	err := PrintError(cmd, assert.AnError)
+	assert.NoError(t, err)
+}
+
+func TestPrintSuccess_Table(t *testing.T) {
+	cmd := &cobra.Command{}
+	cmd.Flags().Bool("json", false, "JSON output")
+
+	err := PrintSuccess(cmd, "success message")
+	assert.NoError(t, err)
+}
