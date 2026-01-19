@@ -35,10 +35,10 @@ Balance: <money>
 
 ### Actual Output (auto-updated)
 ```
-(Results will be inserted here after first run)
+
 ```
 
-❌ FAIL (last run: 2025-11-23)
+❌ FAIL (last run: 2026-01-19)
 
 ---
 
@@ -64,10 +64,10 @@ ID    Name                  Type       Balance      Currency  Status
 
 ### Actual Output (auto-updated)
 ```
-(Results will be inserted here after first run)
+
 ```
 
-❌ FAIL (last run: 2025-11-23)
+❌ FAIL (last run: 2026-01-19)
 
 ---
 
@@ -102,10 +102,10 @@ Created:         <date>
 
 ### Actual Output (auto-updated)
 ```
-(Results will be inserted here after first run)
+
 ```
 
-❌ FAIL (last run: 2025-11-23)
+❌ FAIL (last run: 2026-01-19)
 
 ---
 
@@ -134,10 +134,10 @@ Balance: <money>
 
 ### Actual Output (auto-updated)
 ```
-(Results will be inserted here after first run)
+
 ```
 
-❌ FAIL (last run: 2025-11-23)
+❌ FAIL (last run: 2026-01-19)
 
 ---
 
@@ -165,10 +165,10 @@ Status: inactive
 
 ### Actual Output (auto-updated)
 ```
-(Results will be inserted here after first run)
+
 ```
 
-❌ FAIL (last run: 2025-11-23)
+❌ FAIL (last run: 2026-01-19)
 
 ---
 
@@ -202,10 +202,10 @@ fintrack account list --json
 
 ### Actual Output (auto-updated)
 ```
-(Results will be inserted here after first run)
+
 ```
 
-❌ FAIL (last run: 2025-11-23)
+❌ FAIL (last run: 2026-01-19)
 
 ---
 
@@ -229,10 +229,10 @@ Error: invalid account type "invalid_type". Valid types: checking, savings, cred
 
 ### Actual Output (auto-updated)
 ```
-(Results will be inserted here after first run)
+
 ```
 
-❌ FAIL (last run: 2025-11-23)
+❌ FAIL (last run: 2026-01-19)
 
 ---
 
@@ -257,10 +257,10 @@ Error: account with name "Duplicate Name" already exists
 
 ### Actual Output (auto-updated)
 ```
-(Results will be inserted here after first run)
+
 ```
 
-❌ FAIL (last run: 2025-11-23)
+❌ FAIL (last run: 2026-01-19)
 
 ---
 
@@ -314,3 +314,4 @@ These usage tests are designed to:
 - PASS/FAIL status is tracked with timestamps
 - Failed tests show diffs to help debug issues
 - Markdown format is human-readable and VCS-friendly
+

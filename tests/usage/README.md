@@ -41,10 +41,10 @@ Name: Test Checking
 
 ### Actual Output (auto-updated)
 ```
-(Results will be inserted here)
+
 ```
 
-❌ FAIL (last run: 2025-11-23)
+❌ FAIL (last run: 2026-01-19)
 ```
 
 ### 2. Run Tests
@@ -218,7 +218,7 @@ Output with <wildcards>
 
 ### Actual Output (auto-updated)
 ```
-(Auto-generated)
+
 ```
 
 ✅/❌ STATUS (last run: YYYY-MM-DD)
@@ -311,3 +311,4 @@ See:
 - Project guidance: `/.claude/CLAUDE.md`
 - Integration tests: `/tests/integration/`
 - Example tests: `/tests/usage/01-account-management.md`
+
