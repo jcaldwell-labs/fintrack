@@ -101,7 +101,7 @@ func TestNewImportCmd(t *testing.T) {
 	cmd := NewImportCmd()
 	assert.NotNil(t, cmd)
 	assert.Equal(t, "import", cmd.Use)
-	assert.Equal(t, "Import data from external files", cmd.Short)
+	assert.Equal(t, "Import data from external files (experimental)", cmd.Short)
 
 	// Check for subcommands
 	csvCmd, _, _ := cmd.Find([]string{"csv"})

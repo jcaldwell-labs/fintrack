@@ -21,8 +21,8 @@ func NewAccountRepository(db *gorm.DB) *AccountRepository {
 // Create creates a new account
 func (r *AccountRepository) Create(account *models.Account) error {
 	// Set initial balance as current balance if not set
-	if account.CurrentBalance == 0 && account.InitialBalance != 0 {
-		account.CurrentBalance = account.InitialBalance
+	if account.CurrentBalanceCents == 0 && account.InitialBalanceCents != 0 {
+		account.CurrentBalanceCents = account.InitialBalanceCents
 	}
 
 	return r.db.Create(account).Error
@@ -84,21 +84,21 @@ func (r *AccountRepository) HardDelete(id uint) error {
 	return r.db.Delete(&models.Account{}, id).Error
 }
 
-// UpdateBalance updates the account balance
-func (r *AccountRepository) UpdateBalance(id uint, newBalance float64) error {
+// UpdateBalance updates the account balance (in cents)
+func (r *AccountRepository) UpdateBalance(id uint, newBalanceCents int64) error {
 	return r.db.Model(&models.Account{}).
 		Where("id = ?", id).
-		Update("current_balance", newBalance).Error
+		Update("current_balance", newBalanceCents).Error
 }
 
-// GetBalance retrieves the current balance for an account
-func (r *AccountRepository) GetBalance(id uint) (float64, error) {
+// GetBalance retrieves the current balance (in cents) for an account
+func (r *AccountRepository) GetBalance(id uint) (int64, error) {
 	var account models.Account
 	err := r.db.Select("current_balance").First(&account, id).Error
 	if err != nil {
 		return 0, err
 	}
-	return account.CurrentBalance, nil
+	return account.CurrentBalanceCents, nil
 }
 
 // NameExists checks if an account name already exists

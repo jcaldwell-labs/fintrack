@@ -8,19 +8,20 @@ import (
 )
 
 // Account represents a financial account
+// Money is stored as cents (int64) to avoid floating-point precision issues
 type Account struct {
-	ID                 uint      `gorm:"primaryKey" json:"id"`
-	Name               string    `gorm:"not null;uniqueIndex:idx_accounts_name_active" json:"name"`
-	Type               string    `gorm:"not null;index" json:"type"` // checking, savings, credit, cash, investment, loan
-	Currency           string    `gorm:"default:USD" json:"currency"`
-	InitialBalance     float64   `gorm:"default:0" json:"initial_balance"`
-	CurrentBalance     float64   `gorm:"default:0" json:"current_balance"`
-	Institution        string    `json:"institution,omitempty"`
-	AccountNumberLast4 string    `gorm:"column:account_number_last4" json:"account_number_last4,omitempty"`
-	IsActive           bool      `gorm:"default:true;index" json:"is_active"`
-	Notes              string    `json:"notes,omitempty"`
-	CreatedAt          time.Time `json:"created_at"`
-	UpdatedAt          time.Time `json:"updated_at"`
+	ID                  uint      `gorm:"primaryKey" json:"id"`
+	Name                string    `gorm:"not null;uniqueIndex:idx_accounts_name_active" json:"name"`
+	Type                string    `gorm:"not null;index" json:"type"` // checking, savings, credit, cash, investment, loan
+	Currency            string    `gorm:"default:USD" json:"currency"`
+	InitialBalanceCents int64     `gorm:"column:initial_balance;default:0" json:"initial_balance_cents"`
+	CurrentBalanceCents int64     `gorm:"column:current_balance;default:0" json:"current_balance_cents"`
+	Institution         string    `json:"institution,omitempty"`
+	AccountNumberLast4  string    `gorm:"column:account_number_last4" json:"account_number_last4,omitempty"`
+	IsActive            bool      `gorm:"default:true;index" json:"is_active"`
+	Notes               string    `json:"notes,omitempty"`
+	CreatedAt           time.Time `json:"created_at"`
+	UpdatedAt           time.Time `json:"updated_at"`
 }
 
 // Category represents a transaction category
@@ -65,12 +66,13 @@ func (a StringArray) Value() (driver.Value, error) {
 }
 
 // Transaction represents a financial transaction
+// Amount is stored as cents (int64) to avoid floating-point precision issues
 type Transaction struct {
 	ID                uint        `gorm:"primaryKey" json:"id"`
 	AccountID         uint        `gorm:"not null;index" json:"account_id"`
 	Account           *Account    `gorm:"foreignKey:AccountID" json:"account,omitempty"`
 	Date              time.Time   `gorm:"not null;index:idx_transactions_date,sort:desc" json:"date"`
-	Amount            float64     `gorm:"not null" json:"amount"` // Positive for income, negative for expenses
+	AmountCents       int64       `gorm:"column:amount;not null" json:"amount_cents"` // Positive for income, negative for expenses
 	CategoryID        *uint       `gorm:"index" json:"category_id,omitempty"`
 	Category          *Category   `gorm:"foreignKey:CategoryID" json:"category,omitempty"`
 	Payee             string      `gorm:"index" json:"payee,omitempty"`
@@ -88,30 +90,32 @@ type Transaction struct {
 }
 
 // Budget represents a spending limit
+// Money amounts stored as cents (int64) to avoid floating-point precision issues
 type Budget struct {
-	ID              uint      `gorm:"primaryKey" json:"id"`
-	Name            string    `gorm:"not null" json:"name"`
-	CategoryID      *uint     `gorm:"index" json:"category_id,omitempty"`
-	Category        *Category `gorm:"foreignKey:CategoryID" json:"category,omitempty"`
-	PeriodType      string    `gorm:"not null" json:"period_type"` // weekly, monthly, quarterly, annual
-	PeriodStart     time.Time `gorm:"not null;index:idx_budgets_period" json:"period_start"`
-	PeriodEnd       time.Time `gorm:"not null;index:idx_budgets_period" json:"period_end"`
-	LimitAmount     float64   `gorm:"not null" json:"limit_amount"`
-	RolloverEnabled bool      `gorm:"default:false" json:"rollover_enabled"`
-	RolloverAmount  float64   `gorm:"default:0" json:"rollover_amount"`
-	AlertThreshold  float64   `gorm:"default:0.80" json:"alert_threshold"`
-	IsActive        bool      `gorm:"default:true;index" json:"is_active"`
-	CreatedAt       time.Time `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
+	ID                  uint      `gorm:"primaryKey" json:"id"`
+	Name                string    `gorm:"not null" json:"name"`
+	CategoryID          *uint     `gorm:"index" json:"category_id,omitempty"`
+	Category            *Category `gorm:"foreignKey:CategoryID" json:"category,omitempty"`
+	PeriodType          string    `gorm:"not null" json:"period_type"` // weekly, monthly, quarterly, annual
+	PeriodStart         time.Time `gorm:"not null;index:idx_budgets_period" json:"period_start"`
+	PeriodEnd           time.Time `gorm:"not null;index:idx_budgets_period" json:"period_end"`
+	LimitAmountCents    int64     `gorm:"column:limit_amount;not null" json:"limit_amount_cents"`
+	RolloverEnabled     bool      `gorm:"default:false" json:"rollover_enabled"`
+	RolloverAmountCents int64     `gorm:"column:rollover_amount;default:0" json:"rollover_amount_cents"`
+	AlertThreshold      float64   `gorm:"default:0.80" json:"alert_threshold"` // Percentage, not money
+	IsActive            bool      `gorm:"default:true;index" json:"is_active"`
+	CreatedAt           time.Time `json:"created_at"`
+	UpdatedAt           time.Time `json:"updated_at"`
 }
 
 // RecurringItem represents a recurring transaction template
+// Amount stored as cents (int64) to avoid floating-point precision issues
 type RecurringItem struct {
 	ID                 uint       `gorm:"primaryKey" json:"id"`
 	AccountID          uint       `gorm:"not null;index" json:"account_id"`
 	Account            *Account   `gorm:"foreignKey:AccountID" json:"account,omitempty"`
 	Name               string     `gorm:"not null" json:"name"`
-	Amount             float64    `gorm:"not null" json:"amount"`
+	AmountCents        int64      `gorm:"column:amount;not null" json:"amount_cents"`
 	CategoryID         *uint      `json:"category_id,omitempty"`
 	Category           *Category  `gorm:"foreignKey:CategoryID" json:"category,omitempty"`
 	Description        string     `json:"description,omitempty"`
@@ -146,17 +150,18 @@ type Reminder struct {
 }
 
 // CashFlowProjection represents a future cash flow estimate
+// Money amounts stored as cents (int64) to avoid floating-point precision issues
 type CashFlowProjection struct {
-	ID                uint      `gorm:"primaryKey" json:"id"`
-	AccountID         *uint     `gorm:"index:idx_projections_account_date" json:"account_id,omitempty"`
-	Account           *Account  `gorm:"foreignKey:AccountID" json:"account,omitempty"`
-	ProjectionDate    time.Time `gorm:"not null;index:idx_projections_account_date,idx_projections_date" json:"projection_date"`
-	ProjectedBalance  float64   `gorm:"not null" json:"projected_balance"`
-	ProjectedIncome   float64   `gorm:"default:0" json:"projected_income"`
-	ProjectedExpenses float64   `gorm:"default:0" json:"projected_expenses"`
-	ConfidenceLevel   float64   `json:"confidence_level,omitempty"`                    // 0.0-1.0
-	ProjectionType    string    `gorm:"default:moderate;index" json:"projection_type"` // conservative, moderate, optimistic
-	GeneratedAt       time.Time `json:"generated_at"`
+	ID                     uint      `gorm:"primaryKey" json:"id"`
+	AccountID              *uint     `gorm:"index:idx_projections_account_date" json:"account_id,omitempty"`
+	Account                *Account  `gorm:"foreignKey:AccountID" json:"account,omitempty"`
+	ProjectionDate         time.Time `gorm:"not null;index:idx_projections_account_date,idx_projections_date" json:"projection_date"`
+	ProjectedBalanceCents  int64     `gorm:"column:projected_balance;not null" json:"projected_balance_cents"`
+	ProjectedIncomeCents   int64     `gorm:"column:projected_income;default:0" json:"projected_income_cents"`
+	ProjectedExpensesCents int64     `gorm:"column:projected_expenses;default:0" json:"projected_expenses_cents"`
+	ConfidenceLevel        float64   `json:"confidence_level,omitempty"`                    // 0.0-1.0, percentage not money
+	ProjectionType         string    `gorm:"default:moderate;index" json:"projection_type"` // conservative, moderate, optimistic
+	GeneratedAt            time.Time `json:"generated_at"`
 }
 
 // ImportHistory tracks file imports
@@ -209,3 +214,25 @@ const (
 	FrequencyQuarterly = "quarterly"
 	FrequencyAnnual    = "annual"
 )
+
+// DollarsToCents converts a dollar amount (float64) to cents (int64)
+// Uses rounding to handle floating-point precision issues
+func DollarsToCents(dollars float64) int64 {
+	// Multiply by 100 and round to nearest cent
+	return int64(dollars*100 + 0.5*sign(dollars))
+}
+
+// CentsToDollars converts cents (int64) to dollar amount (float64)
+func CentsToDollars(cents int64) float64 {
+	return float64(cents) / 100
+}
+
+// sign returns 1 for positive, -1 for negative, 0 for zero
+func sign(x float64) float64 {
+	if x > 0 {
+		return 1
+	} else if x < 0 {
+		return -1
+	}
+	return 0
+}

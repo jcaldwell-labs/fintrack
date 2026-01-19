@@ -41,11 +41,11 @@ func (suite *AccountRepositoryTestSuite) SetupTest() {
 func (suite *AccountRepositoryTestSuite) TestCreateAccount() {
 	// Given
 	account := &models.Account{
-		Name:           "Test Checking",
-		Type:           models.AccountTypeChecking,
-		Currency:       "USD",
-		InitialBalance: 1000.0,
-		IsActive:       true,
+		Name:                "Test Checking",
+		Type:                models.AccountTypeChecking,
+		Currency:            "USD",
+		InitialBalanceCents: 100000, // $1000.00
+		IsActive:            true,
 	}
 
 	// When
@@ -55,7 +55,7 @@ func (suite *AccountRepositoryTestSuite) TestCreateAccount() {
 	assert.NoError(suite.T(), err)
 	assert.NotZero(suite.T(), account.ID)
 	assert.Equal(suite.T(), "Test Checking", account.Name)
-	assert.Equal(suite.T(), 1000.0, account.InitialBalance)
+	assert.Equal(suite.T(), int64(100000), account.InitialBalanceCents)
 }
 
 // TestGetAccountByID tests retrieving account by ID
@@ -130,16 +130,16 @@ func (suite *AccountRepositoryTestSuite) TestListAccounts() {
 func (suite *AccountRepositoryTestSuite) TestUpdateAccount() {
 	// Given
 	account := &models.Account{
-		Name:           "Old Name",
-		Type:           models.AccountTypeChecking,
-		CurrentBalance: 100.0,
-		IsActive:       true,
+		Name:                "Old Name",
+		Type:                models.AccountTypeChecking,
+		CurrentBalanceCents: 10000, // $100.00
+		IsActive:            true,
 	}
 	suite.db.Create(account)
 
 	// When
 	account.Name = "New Name"
-	account.CurrentBalance = 200.0
+	account.CurrentBalanceCents = 20000 // $200.00
 	err := suite.db.Save(account).Error
 
 	// Then
@@ -148,7 +148,7 @@ func (suite *AccountRepositoryTestSuite) TestUpdateAccount() {
 	var updated models.Account
 	suite.db.First(&updated, account.ID)
 	assert.Equal(suite.T(), "New Name", updated.Name)
-	assert.Equal(suite.T(), 200.0, updated.CurrentBalance)
+	assert.Equal(suite.T(), int64(20000), updated.CurrentBalanceCents)
 }
 
 // TestDeleteAccount tests account soft deletion

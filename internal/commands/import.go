@@ -17,8 +17,11 @@ import (
 func NewImportCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "import",
-		Short: "Import data from external files",
-		Long:  "Import transactions from CSV files.",
+		Short: "Import data from external files (experimental)",
+		Long: `Import transactions from CSV files.
+
+⚠️  EXPERIMENTAL: This feature is under active development.
+    Bank-specific mappings and edge cases may not be fully supported.`,
 	}
 
 	cmd.AddCommand(newImportCSVCmd())

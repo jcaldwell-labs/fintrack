@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/fintrack/fintrack/internal/config"
@@ -11,11 +12,18 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-var db *gorm.DB
-var originalDB *gorm.DB
+var (
+	db         *gorm.DB
+	originalDB *gorm.DB
+	initOnce   sync.Once
+	initErr    error
+	mu         sync.RWMutex
+)
 
 // SetTestDB sets a test database instance (for testing only)
 func SetTestDB(testDB *gorm.DB) {
+	mu.Lock()
+	defer mu.Unlock()
 	if originalDB == nil {
 		originalDB = db
 	}
@@ -24,19 +32,45 @@ func SetTestDB(testDB *gorm.DB) {
 
 // ResetTestDB resets to the original database instance (for testing only)
 func ResetTestDB() {
+	mu.Lock()
+	defer mu.Unlock()
 	if originalDB != nil {
 		db = originalDB
 		originalDB = nil
 	}
+	// Reset initOnce so Init() can be called again
+	initOnce = sync.Once{}
+	initErr = nil
 }
 
-// Init initializes the database connection
+// Init initializes the database connection (thread-safe, runs only once)
 func Init() error {
+	initOnce.Do(func() {
+		initErr = initDB()
+	})
+	return initErr
+}
+
+// initDB performs the actual database initialization
+func initDB() error {
 	cfg := config.Get()
 
 	dsn := cfg.GetDatabaseURL()
 	if dsn == "" {
-		return fmt.Errorf("database URL not configured")
+		return fmt.Errorf(`database not configured
+
+Setup required:
+  1. Create database: createdb fintrack
+  2. Set connection URL (choose one):
+
+     Environment variable:
+       export FINTRACK_DB_URL="postgresql://localhost:5432/fintrack?sslmode=disable"
+
+     Config file (~/.config/fintrack/config.yaml):
+       database:
+         url: "postgresql://localhost:5432/fintrack?sslmode=disable"
+
+For more help, see: https://github.com/jcaldwell-labs/fintrack#configuration`)
 	}
 
 	// Configure GORM
@@ -49,13 +83,13 @@ func Init() error {
 
 	// Connect to database
 	var err error
-	db, err = gorm.Open(postgres.Open(dsn), gormConfig)
+	connDB, err := gorm.Open(postgres.Open(dsn), gormConfig)
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	// Get underlying SQL database for connection pool configuration
-	sqlDB, err := db.DB()
+	sqlDB, err := connDB.DB()
 	if err != nil {
 		return fmt.Errorf("failed to get database instance: %w", err)
 	}
@@ -77,16 +111,26 @@ func Init() error {
 		return fmt.Errorf("failed to ping database: %w", err)
 	}
 
+	// Only assign to global after successful connection
+	mu.Lock()
+	db = connDB
+	mu.Unlock()
+
 	return nil
 }
 
-// Get returns the database instance
+// Get returns the database instance (thread-safe)
 func Get() *gorm.DB {
+	mu.RLock()
+	defer mu.RUnlock()
 	return db
 }
 
-// Close closes the database connection
+// Close closes the database connection (thread-safe)
 func Close() error {
+	mu.Lock()
+	defer mu.Unlock()
+
 	if db == nil {
 		return nil
 	}
@@ -117,8 +161,11 @@ func AutoMigrate() error {
 	)
 }
 
-// IsConnected checks if database is connected
+// IsConnected checks if database is connected (thread-safe)
 func IsConnected() bool {
+	mu.RLock()
+	defer mu.RUnlock()
+
 	if db == nil {
 		return false
 	}

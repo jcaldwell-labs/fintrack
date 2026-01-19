@@ -10,7 +10,7 @@
 
 ## Why FinTrack?
 
-*Your finances. Your terminal. Your control.*
+_Your finances. Your terminal. Your control._
 
 Traditional personal finance apps require cloud accounts, sync your sensitive data to third-party servers, and lock you into proprietary formats. FinTrack is different:
 
@@ -20,23 +20,27 @@ Traditional personal finance apps require cloud accounts, sync your sensitive da
 - **Full control**: Export your data anytime. No vendor lock-in. Open source forever
 
 **Perfect for:**
+
 - Developers who live in the terminal
 - Privacy-conscious users who don't want their financial data in the cloud
 - Power users who want to script and automate their budgeting
 - Anyone migrating from Mint, YNAB, or spreadsheets who wants more control
 
-## Features
+## What Works Today
 
-### Current (Phase 1)
-- ✅ Account management (create, list, update, close)
-- ✅ Transaction tracking and categorization
-- ✅ Category management with hierarchical support
-- ✅ PostgreSQL backend with ACID compliance
-- ✅ JSON output for scripting
-- ✅ Cross-platform support (Linux, macOS, Windows)
+- ✅ **Account management** - Create, list, update, close accounts
+- ✅ **Transaction tracking** - Add, list, update, delete transactions with category assignment
+- ✅ **Category management** - Hierarchical categories for income and expenses
+- ✅ **JSON output** - Pipe to `jq`, script your budgets, build dashboards
+- ✅ **PostgreSQL backend** - ACID-compliant, local-first data storage
+- ✅ **Cross-platform** - Linux, macOS, Windows
 
-### Coming Soon
-- CSV import with bank-specific mappings
+### Experimental
+
+- 🧪 **CSV import** - Basic import with custom column mapping (bank-specific formats vary)
+
+### On the Roadmap
+
 - Budget tracking with alerts
 - Recurring transaction scheduling
 - Cash flow projections
@@ -49,6 +53,7 @@ Traditional personal finance apps require cloud accounts, sync your sensitive da
 <!-- TODO: Add asciinema recording -->
 
 **Try it yourself:**
+
 ```bash
 # Create your first account
 fintrack account add "Checking" --type checking --balance 5000
@@ -74,17 +79,20 @@ fintrack tx list --json | jq '.[] | select(.category == "Groceries")'
 ### Installation
 
 1. **Clone the repository:**
+
 ```bash
 git clone https://github.com/fintrack/fintrack.git
 cd fintrack
 ```
 
 2. **Install dependencies:**
+
 ```bash
 make deps
 ```
 
 3. **Set up PostgreSQL database:**
+
 ```bash
 # Create database
 createdb fintrack
@@ -96,6 +104,7 @@ psql -d fintrack -f ../fintrack_schema.sql
 4. **Configure database connection:**
 
 Create `~/.config/fintrack/config.yaml`:
+
 ```yaml
 database:
   url: "postgresql://localhost:5432/fintrack?sslmode=disable"
@@ -104,6 +113,7 @@ database:
 ```
 
 5. **Build and install:**
+
 ```bash
 make build
 make install
@@ -137,6 +147,7 @@ fintrack account list --json
 ```
 
 **Example output:**
+
 ```
 ID  NAME             TYPE       BALANCE      LAST ACTIVITY
 1   Chase Checking   checking   $5,234.10    2025-11-16
@@ -173,6 +184,7 @@ fintrack cat list -t income
 ```
 
 **Example output:**
+
 ```
 ID  NAME              TYPE      PARENT          SYSTEM  COLOR     ICON
 1   Salary            income                    Yes               💰
@@ -213,6 +225,7 @@ fintrack tx delete 42
 ```
 
 **Example output:**
+
 ```
 ID  DATE        ACCOUNT   CATEGORY      PAYEE      AMOUNT     TYPE
 42  2024-01-15  Checking  Groceries     Walmart    -$50.00    expense
@@ -372,17 +385,17 @@ See `../fintrack_schema.sql` for the complete schema.
 
 ## Comparison
 
-| Feature | FinTrack | Mint/YNAB | Ledger-CLI | Spreadsheets |
-|---------|----------|-----------|------------|--------------|
-| Local-first data | ✅ | ❌ | ✅ | ✅ |
-| No cloud account | ✅ | ❌ | ✅ | ❌ (Google/MS) |
-| JSON output | ✅ | ❌ | ❌ | ❌ |
-| Scriptable CLI | ✅ | ❌ | ✅ | ❌ |
-| ACID database | ✅ | ? | ❌ (text) | ❌ |
-| Budgeting | 🔄 | ✅ | ❌ | Manual |
-| Bank import | 🔄 | ✅ | ✅ | Manual |
-| Cross-platform | ✅ | Web | ✅ | Web |
-| Open source | ✅ | ❌ | ✅ | ❌ |
+| Feature          | FinTrack | Mint/YNAB | Ledger-CLI | Spreadsheets   |
+| ---------------- | -------- | --------- | ---------- | -------------- |
+| Local-first data | ✅       | ❌        | ✅         | ✅             |
+| No cloud account | ✅       | ❌        | ✅         | ❌ (Google/MS) |
+| JSON output      | ✅       | ❌        | ❌         | ❌             |
+| Scriptable CLI   | ✅       | ❌        | ✅         | ❌             |
+| ACID database    | ✅       | ?         | ❌ (text)  | ❌             |
+| Budgeting        | 🔄       | ✅        | ❌         | Manual         |
+| Bank import      | 🔄       | ✅        | ✅         | Manual         |
+| Cross-platform   | ✅       | Web       | ✅         | Web            |
+| Open source      | ✅       | ❌        | ✅         | ❌             |
 
 ## Roadmap
 
@@ -390,13 +403,13 @@ See [.github/planning/ROADMAP.md](.github/planning/ROADMAP.md) for the detailed 
 
 **Current Phase:** Phase 1 - Core Foundation (MVP)
 
-| Phase | Focus | Status |
-|-------|-------|--------|
+| Phase   | Focus                                                | Status      |
+| ------- | ---------------------------------------------------- | ----------- |
 | Phase 1 | Core Foundation (accounts, transactions, categories) | In Progress |
-| Phase 2 | Budgeting & Scheduling | Planned |
-| Phase 3 | Projections & Analytics | Planned |
-| Phase 4 | Advanced Features (multi-currency, Plaid) | Planned |
-| Phase 5 | Polish & Optimization (TUI, shell completion) | Planned |
+| Phase 2 | Budgeting & Scheduling                               | Planned     |
+| Phase 3 | Projections & Analytics                              | Planned     |
+| Phase 4 | Advanced Features (multi-currency, Plaid)            | Planned     |
+| Phase 5 | Polish & Optimization (TUI, shell completion)        | Planned     |
 
 ## Contributing
 
@@ -424,14 +437,14 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [Quick Reference](docs/FINTRACK_QUICKREF.md) | Command cheat sheet |
-| [System Design](docs/FINANCE_TRACKER_PLAN.md) | Complete architecture |
-| [Roadmap](.github/planning/ROADMAP.md) | Implementation timeline |
-| [Contributing](CONTRIBUTING.md) | How to contribute |
-| [Testing](TESTING.md) | Test strategy and coverage |
-| [Security](SECURITY.md) | Security guidelines |
+| Document                                      | Description                |
+| --------------------------------------------- | -------------------------- |
+| [Quick Reference](docs/FINTRACK_QUICKREF.md)  | Command cheat sheet        |
+| [System Design](docs/FINANCE_TRACKER_PLAN.md) | Complete architecture      |
+| [Roadmap](.github/planning/ROADMAP.md)        | Implementation timeline    |
+| [Contributing](CONTRIBUTING.md)               | How to contribute          |
+| [Testing](TESTING.md)                         | Test strategy and coverage |
+| [Security](SECURITY.md)                       | Security guidelines        |
 
 ## Community
 
@@ -444,25 +457,28 @@ MIT License - see [LICENSE](LICENSE) file for details.
 FinTrack is part of the [jcaldwell-labs](https://github.com/jcaldwell-labs) organization. Check out these sister projects:
 
 ### Terminal/TUI Tools
-| Project | Description |
-|---------|-------------|
-| [my-grid](https://github.com/jcaldwell-labs/my-grid) | ASCII canvas editor with vim-style navigation, zones, and PTY support |
-| [boxes-live](https://github.com/jcaldwell-labs/boxes-live) | Real-time ASCII box drawing with joystick support |
-| [terminal-stars](https://github.com/jcaldwell-labs/terminal-stars) | Starfield animation for terminals |
-| [atari-style](https://github.com/jcaldwell-labs/atari-style) | Retro visual effects and shaders for terminal apps |
-| [smartterm-prototype](https://github.com/jcaldwell-labs/smartterm-prototype) | Smart terminal with readline-like features |
+
+| Project                                                                      | Description                                                           |
+| ---------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| [my-grid](https://github.com/jcaldwell-labs/my-grid)                         | ASCII canvas editor with vim-style navigation, zones, and PTY support |
+| [boxes-live](https://github.com/jcaldwell-labs/boxes-live)                   | Real-time ASCII box drawing with joystick support                     |
+| [terminal-stars](https://github.com/jcaldwell-labs/terminal-stars)           | Starfield animation for terminals                                     |
+| [atari-style](https://github.com/jcaldwell-labs/atari-style)                 | Retro visual effects and shaders for terminal apps                    |
+| [smartterm-prototype](https://github.com/jcaldwell-labs/smartterm-prototype) | Smart terminal with readline-like features                            |
 
 ### CLI Tools
-| Project | Description |
-|---------|-------------|
+
+| Project                                                    | Description                               |
+| ---------------------------------------------------------- | ----------------------------------------- |
 | [my-context](https://github.com/jcaldwell-labs/my-context) | Context tracking for development sessions |
-| [tario](https://github.com/jcaldwell-labs/tario) | Terminal-based platformer game |
+| [tario](https://github.com/jcaldwell-labs/tario)           | Terminal-based platformer game            |
 
 ### Other
-| Project | Description |
-|---------|-------------|
-| [adventure-engine-v2](https://github.com/jcaldwell-labs/adventure-engine-v2) | Multiplayer text adventure engine (C) |
-| [capability-catalog](https://github.com/jcaldwell-labs/capability-catalog) | Skill/capability definitions for AI agents |
+
+| Project                                                                      | Description                                |
+| ---------------------------------------------------------------------------- | ------------------------------------------ |
+| [adventure-engine-v2](https://github.com/jcaldwell-labs/adventure-engine-v2) | Multiplayer text adventure engine (C)      |
+| [capability-catalog](https://github.com/jcaldwell-labs/capability-catalog)   | Skill/capability definitions for AI agents |
 
 ### Synergies
 
@@ -473,6 +489,7 @@ FinTrack is part of the [jcaldwell-labs](https://github.com/jcaldwell-labs) orga
 ## Acknowledgments
 
 Inspired by:
+
 - [ledger-cli](https://www.ledger-cli.org/) - Plain-text accounting
 - [hledger](https://hledger.org/) - Accounting tools
 - [YNAB](https://www.youneedabudget.com/) - Budget philosophy

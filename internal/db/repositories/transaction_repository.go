@@ -38,7 +38,7 @@ func (r *TransactionRepository) Create(tx *models.Transaction) error {
 		if err := dbTx.Create(tx).Error; err != nil {
 			return err
 		}
-		return r.updateAccountBalance(dbTx, tx.AccountID, tx.Amount)
+		return r.updateAccountBalance(dbTx, tx.AccountID, tx.AmountCents)
 	})
 }
 
@@ -51,9 +51,9 @@ func (r *TransactionRepository) CreateBatch(txs []*models.Transaction, batchSize
 		if err := dbTx.CreateInBatches(txs, batchSize).Error; err != nil {
 			return err
 		}
-		accountTotals := make(map[uint]float64)
+		accountTotals := make(map[uint]int64)
 		for _, tx := range txs {
-			accountTotals[tx.AccountID] += tx.Amount
+			accountTotals[tx.AccountID] += tx.AmountCents
 		}
 		for accountID, total := range accountTotals {
 			if err := r.updateAccountBalance(dbTx, accountID, total); err != nil {
@@ -136,16 +136,16 @@ func (r *TransactionRepository) Update(tx *models.Transaction) error {
 		if err := dbTx.First(&original, tx.ID).Error; err != nil {
 			return err
 		}
-		balanceDiff := tx.Amount - original.Amount
+		balanceDiff := tx.AmountCents - original.AmountCents
 		if err := dbTx.Save(tx).Error; err != nil {
 			return err
 		}
 		if balanceDiff != 0 {
 			if original.AccountID != tx.AccountID {
-				if err := r.updateAccountBalance(dbTx, original.AccountID, -original.Amount); err != nil {
+				if err := r.updateAccountBalance(dbTx, original.AccountID, -original.AmountCents); err != nil {
 					return err
 				}
-				return r.updateAccountBalance(dbTx, tx.AccountID, tx.Amount)
+				return r.updateAccountBalance(dbTx, tx.AccountID, tx.AmountCents)
 			}
 			return r.updateAccountBalance(dbTx, tx.AccountID, balanceDiff)
 		}
@@ -166,13 +166,13 @@ func (r *TransactionRepository) Delete(id uint) error {
 		if err := dbTx.Delete(&models.Transaction{}, id).Error; err != nil {
 			return err
 		}
-		return r.updateAccountBalance(dbTx, tx.AccountID, -tx.Amount)
+		return r.updateAccountBalance(dbTx, tx.AccountID, -tx.AmountCents)
 	})
 }
 
-// GetTotalByAccount calculates total amount for an account
-func (r *TransactionRepository) GetTotalByAccount(accountID uint, txType string) (float64, error) {
-	var total float64
+// GetTotalByAccount calculates total amount (in cents) for an account
+func (r *TransactionRepository) GetTotalByAccount(accountID uint, txType string) (int64, error) {
+	var total int64
 	query := r.db.Model(&models.Transaction{}).Where("account_id = ?", accountID)
 	if txType != "" {
 		query = query.Where("type = ?", txType)
@@ -181,9 +181,9 @@ func (r *TransactionRepository) GetTotalByAccount(accountID uint, txType string)
 	return total, err
 }
 
-// GetTotalByCategory calculates total amount for a category within a date range
-func (r *TransactionRepository) GetTotalByCategory(categoryID uint, from, to *time.Time) (float64, error) {
-	var total float64
+// GetTotalByCategory calculates total amount (in cents) for a category within a date range
+func (r *TransactionRepository) GetTotalByCategory(categoryID uint, from, to *time.Time) (int64, error) {
+	var total int64
 	query := r.db.Model(&models.Transaction{}).Where("category_id = ?", categoryID)
 	if from != nil {
 		query = query.Where("date >= ?", *from)
@@ -242,7 +242,7 @@ func (r *TransactionRepository) Count(filter TransactionFilter) (int64, error) {
 // DuplicateCheck holds the fields used for duplicate detection
 type DuplicateCheck struct {
 	Date        time.Time
-	Amount      float64
+	AmountCents int64
 	Description string
 }
 
@@ -254,7 +254,7 @@ func (r *TransactionRepository) FindDuplicate(accountID uint, check DuplicateChe
 
 	err := r.db.Where(
 		"account_id = ? AND date >= ? AND date < ? AND amount = ? AND description = ?",
-		accountID, dateStart, dateEnd, check.Amount, check.Description,
+		accountID, dateStart, dateEnd, check.AmountCents, check.Description,
 	).First(&tx).Error
 
 	if err != nil {
@@ -286,10 +286,10 @@ func (r *TransactionRepository) CountByImportID(importID uint) (int64, error) {
 	return count, err
 }
 
-// GetSummaryByAccount returns transaction summary for an account
-func (r *TransactionRepository) GetSummaryByAccount(accountID uint) (int64, float64, error) {
+// GetSummaryByAccount returns transaction summary for an account (count and sum in cents)
+func (r *TransactionRepository) GetSummaryByAccount(accountID uint) (int64, int64, error) {
 	var count int64
-	var sum float64
+	var sumCents int64
 
 	err := r.db.Model(&models.Transaction{}).
 		Where("account_id = ?", accountID).
@@ -301,14 +301,14 @@ func (r *TransactionRepository) GetSummaryByAccount(accountID uint) (int64, floa
 	err = r.db.Model(&models.Transaction{}).
 		Where("account_id = ?", accountID).
 		Select("COALESCE(SUM(amount), 0)").
-		Scan(&sum).Error
+		Scan(&sumCents).Error
 
-	return count, sum, err
+	return count, sumCents, err
 }
 
-// updateAccountBalance updates an account's current balance
-func (r *TransactionRepository) updateAccountBalance(db *gorm.DB, accountID uint, amount float64) error {
+// updateAccountBalance updates an account's current balance (amount in cents)
+func (r *TransactionRepository) updateAccountBalance(db *gorm.DB, accountID uint, amountCents int64) error {
 	return db.Model(&models.Account{}).
 		Where("id = ?", accountID).
-		Update("current_balance", gorm.Expr("current_balance + ?", amount)).Error
+		Update("current_balance", gorm.Expr("current_balance + ?", amountCents)).Error
 }

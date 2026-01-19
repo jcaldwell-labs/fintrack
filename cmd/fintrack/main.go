@@ -50,18 +50,20 @@ Unix philosophy: Composable commands, text output, scriptable.`,
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default: $HOME/.config/fintrack/config.yaml)")
 	rootCmd.PersistentFlags().Bool("json", false, "output in JSON format")
 
-	// Add subcommands
+	// Add subcommands - only working features
 	rootCmd.AddCommand(commands.NewAccountCmd())
 	rootCmd.AddCommand(commands.NewCategoryCmd())
 	rootCmd.AddCommand(commands.NewTransactionCmd())
-	rootCmd.AddCommand(commands.NewBudgetCmd())
-	rootCmd.AddCommand(commands.NewScheduleCmd())
-	rootCmd.AddCommand(commands.NewRemindCmd())
-	rootCmd.AddCommand(commands.NewProjectCmd())
-	rootCmd.AddCommand(commands.NewReportCmd())
-	rootCmd.AddCommand(commands.NewCalendarCmd())
 	rootCmd.AddCommand(commands.NewImportCmd())
-	rootCmd.AddCommand(commands.NewConfigCmd())
+
+	// Note: These commands are stubbed out for future development
+	// rootCmd.AddCommand(commands.NewBudgetCmd())
+	// rootCmd.AddCommand(commands.NewScheduleCmd())
+	// rootCmd.AddCommand(commands.NewRemindCmd())
+	// rootCmd.AddCommand(commands.NewProjectCmd())
+	// rootCmd.AddCommand(commands.NewReportCmd())
+	// rootCmd.AddCommand(commands.NewCalendarCmd())
+	// rootCmd.AddCommand(commands.NewConfigCmd())
 
 	return rootCmd
 }

@@ -150,14 +150,57 @@ func (t *Table) Print() {
 	}
 }
 
-// FormatCurrency formats a number as currency
-func FormatCurrency(amount float64, currency string) string {
+// FormatCurrencyCents formats cents (int64) as currency with thousand separators
+func FormatCurrencyCents(cents int64, currency string) string {
 	sign := ""
-	if amount < 0 {
+	if cents < 0 {
 		sign = "-"
-		amount = -amount
+		cents = -cents
 	}
-	return fmt.Sprintf("%s$%.2f", sign, amount)
+	dollars := cents / 100
+	remainingCents := cents % 100
+	return fmt.Sprintf("%s$%s.%02d", sign, formatWithCommas(dollars), remainingCents)
+}
+
+// FormatCurrency formats a dollar amount as currency (deprecated: use FormatCurrencyCents)
+func FormatCurrency(amount float64, currency string) string {
+	// Convert to cents and use the cents formatter for consistency
+	cents := int64(amount*100 + 0.5*sign(amount))
+	return FormatCurrencyCents(cents, currency)
+}
+
+// sign returns 1 for positive, -1 for negative, 0 for zero
+func sign(x float64) float64 {
+	if x > 0 {
+		return 1
+	} else if x < 0 {
+		return -1
+	}
+	return 0
+}
+
+// formatWithCommas adds thousand separators to a number
+func formatWithCommas(n int64) string {
+	if n < 1000 {
+		return fmt.Sprintf("%d", n)
+	}
+
+	// Build the string from right to left
+	s := fmt.Sprintf("%d", n)
+	result := make([]byte, len(s)+(len(s)-1)/3)
+
+	j := len(result) - 1
+	for i := len(s) - 1; i >= 0; i-- {
+		result[j] = s[i]
+		j--
+		// Add comma after every 3 digits (except at the start)
+		if (len(s)-i)%3 == 0 && i > 0 {
+			result[j] = ','
+			j--
+		}
+	}
+
+	return string(result)
 }
 
 // FormatPercentage formats a number as percentage

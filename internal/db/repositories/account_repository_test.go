@@ -33,31 +33,31 @@ func (suite *AccountRepositoryTestSuite) SetupTest() {
 
 func (suite *AccountRepositoryTestSuite) TestCreate() {
 	account := &models.Account{
-		Name:           "Test Account",
-		Type:           models.AccountTypeChecking,
-		Currency:       "USD",
-		InitialBalance: 1000.0,
-		IsActive:       true,
+		Name:                "Test Account",
+		Type:                models.AccountTypeChecking,
+		Currency:            "USD",
+		InitialBalanceCents: 100000, // $1000.00
+		IsActive:            true,
 	}
 
 	err := suite.repo.Create(account)
 	assert.NoError(suite.T(), err)
 	assert.NotZero(suite.T(), account.ID)
-	assert.Equal(suite.T(), 1000.0, account.CurrentBalance)
+	assert.Equal(suite.T(), int64(100000), account.CurrentBalanceCents)
 }
 
 func (suite *AccountRepositoryTestSuite) TestCreate_SetsCurrentBalanceFromInitial() {
 	account := &models.Account{
-		Name:           "Balance Test",
-		Type:           models.AccountTypeSavings,
-		Currency:       "USD",
-		InitialBalance: 500.0,
-		IsActive:       true,
+		Name:                "Balance Test",
+		Type:                models.AccountTypeSavings,
+		Currency:            "USD",
+		InitialBalanceCents: 50000, // $500.00
+		IsActive:            true,
 	}
 
 	err := suite.repo.Create(account)
 	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), 500.0, account.CurrentBalance)
+	assert.Equal(suite.T(), int64(50000), account.CurrentBalanceCents)
 }
 
 func (suite *AccountRepositoryTestSuite) TestGetByID() {
@@ -156,22 +156,22 @@ func (suite *AccountRepositoryTestSuite) TestList_ActiveOnly() {
 
 func (suite *AccountRepositoryTestSuite) TestUpdate() {
 	account := &models.Account{
-		Name:           "Original Name",
-		Type:           models.AccountTypeChecking,
-		Currency:       "USD",
-		CurrentBalance: 100.0,
-		IsActive:       true,
+		Name:                "Original Name",
+		Type:                models.AccountTypeChecking,
+		Currency:            "USD",
+		CurrentBalanceCents: 10000, // $100.00
+		IsActive:            true,
 	}
 	_ = suite.repo.Create(account)
 
 	account.Name = "Updated Name"
-	account.CurrentBalance = 200.0
+	account.CurrentBalanceCents = 20000 // $200.00
 	err := suite.repo.Update(account)
 	assert.NoError(suite.T(), err)
 
 	updated, _ := suite.repo.GetByID(account.ID)
 	assert.Equal(suite.T(), "Updated Name", updated.Name)
-	assert.Equal(suite.T(), 200.0, updated.CurrentBalance)
+	assert.Equal(suite.T(), int64(20000), updated.CurrentBalanceCents)
 }
 
 func (suite *AccountRepositoryTestSuite) TestDelete() {
@@ -210,40 +210,40 @@ func (suite *AccountRepositoryTestSuite) TestHardDelete() {
 
 func (suite *AccountRepositoryTestSuite) TestUpdateBalance() {
 	account := &models.Account{
-		Name:           "Balance Update Test",
-		Type:           models.AccountTypeChecking,
-		Currency:       "USD",
-		CurrentBalance: 100.0,
-		IsActive:       true,
+		Name:                "Balance Update Test",
+		Type:                models.AccountTypeChecking,
+		Currency:            "USD",
+		CurrentBalanceCents: 10000, // $100.00
+		IsActive:            true,
 	}
 	_ = suite.repo.Create(account)
 
-	err := suite.repo.UpdateBalance(account.ID, 250.0)
+	err := suite.repo.UpdateBalance(account.ID, 25000) // $250.00
 	assert.NoError(suite.T(), err)
 
 	updated, _ := suite.repo.GetByID(account.ID)
-	assert.Equal(suite.T(), 250.0, updated.CurrentBalance)
+	assert.Equal(suite.T(), int64(25000), updated.CurrentBalanceCents)
 }
 
 func (suite *AccountRepositoryTestSuite) TestGetBalance() {
 	account := &models.Account{
-		Name:           "Get Balance Test",
-		Type:           models.AccountTypeSavings,
-		Currency:       "USD",
-		CurrentBalance: 350.0,
-		IsActive:       true,
+		Name:                "Get Balance Test",
+		Type:                models.AccountTypeSavings,
+		Currency:            "USD",
+		CurrentBalanceCents: 35000, // $350.00
+		IsActive:            true,
 	}
 	_ = suite.repo.Create(account)
 
 	balance, err := suite.repo.GetBalance(account.ID)
 	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), 350.0, balance)
+	assert.Equal(suite.T(), int64(35000), balance)
 }
 
 func (suite *AccountRepositoryTestSuite) TestGetBalance_NotFound() {
 	balance, err := suite.repo.GetBalance(9999)
 	assert.Error(suite.T(), err)
-	assert.Equal(suite.T(), 0.0, balance)
+	assert.Equal(suite.T(), int64(0), balance)
 }
 
 func (suite *AccountRepositoryTestSuite) TestNameExists_True() {

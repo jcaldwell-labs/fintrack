@@ -80,20 +80,20 @@ func TestTransactionDeleteCmd_Structure(t *testing.T) {
 	assert.Contains(t, deleteCmd.Aliases, "remove")
 }
 
-func TestFormatAmount(t *testing.T) {
+func TestFormatAmountCents(t *testing.T) {
 	tests := []struct {
-		amount   float64
+		cents    int64
 		expected string
 	}{
-		{100.00, "+100.00"},
-		{-50.25, "-50.25"},
-		{0.00, "+0.00"},
-		{-0.01, "-0.01"},
-		{1234.56, "+1234.56"},
+		{10000, "+100.00"},   // $100.00
+		{-5025, "-50.25"},    // -$50.25
+		{0, "+0.00"},         // $0.00
+		{-1, "-0.01"},        // -$0.01
+		{123456, "+1234.56"}, // $1234.56
 	}
 
 	for _, tt := range tests {
-		result := formatAmount(tt.amount)
+		result := formatAmountCents(tt.cents)
 		assert.Equal(t, tt.expected, result)
 	}
 }

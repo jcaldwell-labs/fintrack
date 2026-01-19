@@ -61,7 +61,7 @@ func newAccountListCmd() *cobra.Command {
 					fmt.Sprintf("%d", acc.ID),
 					acc.Name,
 					acc.Type,
-					output.FormatCurrency(acc.CurrentBalance, acc.Currency),
+					output.FormatCurrencyCents(acc.CurrentBalanceCents, acc.Currency),
 					lastActivity,
 				)
 			}
@@ -106,15 +106,18 @@ func newAccountAddCmd() *cobra.Command {
 				return fmt.Errorf("invalid account type: %s (valid types: checking, savings, credit, cash, investment, loan)", accountType)
 			}
 
+			// Convert dollars to cents for storage
+			balanceCents := models.DollarsToCents(balance)
+
 			account := &models.Account{
-				Name:           name,
-				Type:           accountType,
-				Currency:       currency,
-				InitialBalance: balance,
-				CurrentBalance: balance,
-				Institution:    institution,
-				Notes:          notes,
-				IsActive:       true,
+				Name:                name,
+				Type:                accountType,
+				Currency:            currency,
+				InitialBalanceCents: balanceCents,
+				CurrentBalanceCents: balanceCents,
+				Institution:         institution,
+				Notes:               notes,
+				IsActive:            true,
 			}
 
 			repo := repositories.NewAccountRepository(db.Get())
@@ -139,14 +142,14 @@ func newAccountAddCmd() *cobra.Command {
 			fmt.Printf("✓ Created account #%d\n", account.ID)
 			fmt.Printf("Name: %s\n", account.Name)
 			fmt.Printf("Type: %s\n", account.Type)
-			fmt.Printf("Balance: %s\n", output.FormatCurrency(account.CurrentBalance, account.Currency))
+			fmt.Printf("Balance: %s\n", output.FormatCurrencyCents(account.CurrentBalanceCents, account.Currency))
 
 			return nil
 		},
 	}
 
 	cmd.Flags().StringVarP(&accountType, "type", "t", "checking", "Account type (checking, savings, credit, cash, investment, loan)")
-	cmd.Flags().Float64VarP(&balance, "balance", "b", 0, "Initial balance")
+	cmd.Flags().Float64VarP(&balance, "balance", "b", 0, "Initial balance (in dollars)")
 	cmd.Flags().StringVarP(&currency, "currency", "c", "USD", "Currency code")
 	cmd.Flags().StringVar(&institution, "institution", "", "Financial institution name")
 	cmd.Flags().StringVar(&notes, "notes", "", "Additional notes")
@@ -183,8 +186,8 @@ func newAccountShowCmd() *cobra.Command {
 			fmt.Printf("Name: %s\n", account.Name)
 			fmt.Printf("Type: %s\n", account.Type)
 			fmt.Printf("Currency: %s\n", account.Currency)
-			fmt.Printf("Current Balance: %s\n", output.FormatCurrency(account.CurrentBalance, account.Currency))
-			fmt.Printf("Initial Balance: %s\n", output.FormatCurrency(account.InitialBalance, account.Currency))
+			fmt.Printf("Current Balance: %s\n", output.FormatCurrencyCents(account.CurrentBalanceCents, account.Currency))
+			fmt.Printf("Initial Balance: %s\n", output.FormatCurrencyCents(account.InitialBalanceCents, account.Currency))
 			if account.Institution != "" {
 				fmt.Printf("Institution: %s\n", account.Institution)
 			}

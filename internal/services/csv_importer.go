@@ -213,7 +213,7 @@ func (i *CSVImporter) parseCSV(reader io.Reader, account *models.Account, opts I
 		if opts.SkipDuplicates {
 			dup, err := i.txRepo.FindDuplicate(account.ID, repositories.DuplicateCheck{
 				Date:        txn.Date,
-				Amount:      txn.Amount,
+				AmountCents: txn.AmountCents,
 				Description: txn.Description,
 			})
 			if err != nil {
@@ -262,16 +262,23 @@ func (i *CSVImporter) parseRecord(record []string, account *models.Account, opts
 		description = "Imported transaction"
 	}
 
+	// Determine transaction type based on amount sign
+	// AmountNegative=true (default): negative amounts = expense, positive = income
+	// AmountNegative=false: positive amounts in CSV are expenses (need to be negated)
 	txType := models.TransactionTypeExpense
 	if amount > 0 {
 		txType = models.TransactionTypeIncome
 	}
 
 	if !mapping.AmountNegative {
+		// When AmountNegative is false, the CSV uses positive numbers for expenses
+		// and negative numbers for income (opposite of our convention)
 		if amount > 0 {
+			// Positive in CSV = expense, negate for storage
 			txType = models.TransactionTypeExpense
 			amount = -amount
 		} else {
+			// Negative in CSV = income, negate to make positive
 			txType = models.TransactionTypeIncome
 			amount = -amount
 		}
@@ -282,10 +289,13 @@ func (i *CSVImporter) parseRecord(record []string, account *models.Account, opts
 		payee = strings.TrimSpace(record[mapping.PayeeColumn])
 	}
 
+	// Convert dollars to cents for storage
+	amountCents := models.DollarsToCents(amount)
+
 	txn := &models.Transaction{
 		AccountID:   account.ID,
 		Date:        date,
-		Amount:      amount,
+		AmountCents: amountCents,
 		Description: description,
 		Payee:       payee,
 		Type:        txType,

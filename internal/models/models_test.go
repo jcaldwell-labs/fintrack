@@ -75,26 +75,26 @@ func TestStringArray_Value_WithData(t *testing.T) {
 func TestAccount_Structure(t *testing.T) {
 	now := time.Now()
 	account := Account{
-		ID:                 1,
-		Name:               "Test Account",
-		Type:               AccountTypeChecking,
-		Currency:           "USD",
-		InitialBalance:     1000.0,
-		CurrentBalance:     1500.0,
-		Institution:        "Test Bank",
-		AccountNumberLast4: "1234",
-		IsActive:           true,
-		Notes:              "Test notes",
-		CreatedAt:          now,
-		UpdatedAt:          now,
+		ID:                  1,
+		Name:                "Test Account",
+		Type:                AccountTypeChecking,
+		Currency:            "USD",
+		InitialBalanceCents: 100000, // $1000.00
+		CurrentBalanceCents: 150000, // $1500.00
+		Institution:         "Test Bank",
+		AccountNumberLast4:  "1234",
+		IsActive:            true,
+		Notes:               "Test notes",
+		CreatedAt:           now,
+		UpdatedAt:           now,
 	}
 
 	assert.Equal(t, uint(1), account.ID)
 	assert.Equal(t, "Test Account", account.Name)
 	assert.Equal(t, AccountTypeChecking, account.Type)
 	assert.Equal(t, "USD", account.Currency)
-	assert.Equal(t, 1000.0, account.InitialBalance)
-	assert.Equal(t, 1500.0, account.CurrentBalance)
+	assert.Equal(t, int64(100000), account.InitialBalanceCents)
+	assert.Equal(t, int64(150000), account.CurrentBalanceCents)
 	assert.Equal(t, "Test Bank", account.Institution)
 	assert.Equal(t, "1234", account.AccountNumberLast4)
 	assert.True(t, account.IsActive)
@@ -151,7 +151,7 @@ func TestTransaction_Structure(t *testing.T) {
 		ID:                1,
 		AccountID:         10,
 		Date:              now,
-		Amount:            -50.0,
+		AmountCents:       -5000, // -$50.00
 		CategoryID:        &categoryID,
 		Payee:             "Grocery Store",
 		Description:       "Weekly groceries",
@@ -167,7 +167,7 @@ func TestTransaction_Structure(t *testing.T) {
 
 	assert.Equal(t, uint(1), transaction.ID)
 	assert.Equal(t, uint(10), transaction.AccountID)
-	assert.Equal(t, -50.0, transaction.Amount)
+	assert.Equal(t, int64(-5000), transaction.AmountCents)
 	assert.NotNil(t, transaction.CategoryID)
 	assert.Equal(t, uint(5), *transaction.CategoryID)
 	assert.Equal(t, "Grocery Store", transaction.Payee)
@@ -188,26 +188,26 @@ func TestBudget_Structure(t *testing.T) {
 	categoryID := uint(5)
 
 	budget := Budget{
-		ID:              1,
-		Name:            "Monthly Groceries",
-		CategoryID:      &categoryID,
-		PeriodType:      "monthly",
-		PeriodStart:     now,
-		PeriodEnd:       now.AddDate(0, 1, 0),
-		LimitAmount:     500.0,
-		RolloverEnabled: true,
-		RolloverAmount:  50.0,
-		AlertThreshold:  0.80,
-		IsActive:        true,
-		CreatedAt:       now,
-		UpdatedAt:       now,
+		ID:                  1,
+		Name:                "Monthly Groceries",
+		CategoryID:          &categoryID,
+		PeriodType:          "monthly",
+		PeriodStart:         now,
+		PeriodEnd:           now.AddDate(0, 1, 0),
+		LimitAmountCents:    50000, // $500.00
+		RolloverEnabled:     true,
+		RolloverAmountCents: 5000, // $50.00
+		AlertThreshold:      0.80,
+		IsActive:            true,
+		CreatedAt:           now,
+		UpdatedAt:           now,
 	}
 
 	assert.Equal(t, uint(1), budget.ID)
 	assert.Equal(t, "Monthly Groceries", budget.Name)
-	assert.Equal(t, 500.0, budget.LimitAmount)
+	assert.Equal(t, int64(50000), budget.LimitAmountCents)
 	assert.True(t, budget.RolloverEnabled)
-	assert.Equal(t, 50.0, budget.RolloverAmount)
+	assert.Equal(t, int64(5000), budget.RolloverAmountCents)
 	assert.Equal(t, 0.80, budget.AlertThreshold)
 }
 
@@ -223,7 +223,7 @@ func TestRecurringItem_Structure(t *testing.T) {
 		ID:                 1,
 		AccountID:          10,
 		Name:               "Monthly Rent",
-		Amount:             -1500.0,
+		AmountCents:        -150000, // -$1500.00
 		CategoryID:         &categoryID,
 		Description:        "Rent payment",
 		Frequency:          FrequencyMonthly,
@@ -243,7 +243,7 @@ func TestRecurringItem_Structure(t *testing.T) {
 
 	assert.Equal(t, uint(1), recurring.ID)
 	assert.Equal(t, "Monthly Rent", recurring.Name)
-	assert.Equal(t, -1500.0, recurring.Amount)
+	assert.Equal(t, int64(-150000), recurring.AmountCents)
 	assert.Equal(t, FrequencyMonthly, recurring.Frequency)
 	assert.True(t, recurring.AutoGenerate)
 }
@@ -289,21 +289,21 @@ func TestCashFlowProjection_Structure(t *testing.T) {
 	accountID := uint(10)
 
 	projection := CashFlowProjection{
-		ID:                1,
-		AccountID:         &accountID,
-		ProjectionDate:    now.AddDate(0, 1, 0),
-		ProjectedBalance:  5000.0,
-		ProjectedIncome:   3000.0,
-		ProjectedExpenses: 2000.0,
-		ConfidenceLevel:   0.85,
-		ProjectionType:    "moderate",
-		GeneratedAt:       now,
+		ID:                     1,
+		AccountID:              &accountID,
+		ProjectionDate:         now.AddDate(0, 1, 0),
+		ProjectedBalanceCents:  500000, // $5000.00
+		ProjectedIncomeCents:   300000, // $3000.00
+		ProjectedExpensesCents: 200000, // $2000.00
+		ConfidenceLevel:        0.85,
+		ProjectionType:         "moderate",
+		GeneratedAt:            now,
 	}
 
 	assert.Equal(t, uint(1), projection.ID)
-	assert.Equal(t, 5000.0, projection.ProjectedBalance)
-	assert.Equal(t, 3000.0, projection.ProjectedIncome)
-	assert.Equal(t, 2000.0, projection.ProjectedExpenses)
+	assert.Equal(t, int64(500000), projection.ProjectedBalanceCents)
+	assert.Equal(t, int64(300000), projection.ProjectedIncomeCents)
+	assert.Equal(t, int64(200000), projection.ProjectedExpensesCents)
 	assert.Equal(t, 0.85, projection.ConfidenceLevel)
 	assert.Equal(t, "moderate", projection.ProjectionType)
 }

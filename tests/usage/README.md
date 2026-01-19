@@ -17,22 +17,27 @@ Traditional documentation tends to become outdated because it's not validated. U
 
 Create a markdown file with test cases:
 
-```markdown
+````markdown
 ## Test: Create a checking account
+
 **Purpose:** Verify users can create a basic checking account
 
 ### Setup
+
 ```bash
 # Clean slate - ensure no existing test accounts
 fintrack account delete "Test Checking" 2>/dev/null || true
 ```
+````
 
 ### Execute
+
 ```bash
-fintrack account create "Test Checking" --type checking --balance 1000.00
+fintrack account add "Test Checking" --type checking --balance 1000.00
 ```
 
 ### Expected Output
+
 ```
 Account created successfully
 ID: <number>
@@ -40,12 +45,14 @@ Name: Test Checking
 ```
 
 ### Actual Output (auto-updated)
-```
-(Results will be inserted here)
+
 ```
 
-❌ FAIL (last run: 2025-11-23)
 ```
+
+❌ FAIL (last run: 2026-01-19)
+
+````
 
 ### 2. Run Tests
 
@@ -55,11 +62,12 @@ make test-usage
 
 # Or run directly
 go test -v ./tests/usage/
-```
+````
 
 ### 3. Review Results
 
 The test harness:
+
 1. Parses markdown files
 2. Builds the fintrack binary
 3. Executes setup commands
@@ -87,31 +95,35 @@ Each test case must have:
 
 Use wildcards for dynamic values:
 
-| Pattern | Matches | Example |
-|---------|---------|---------|
-| `<any>` | Any value | `42`, `foo`, `2025-01-01` |
-| `<number>` | Integers | `42`, `1`, `999` |
-| `<date>` | YYYY-MM-DD | `2025-11-23` |
-| `<uuid>` | UUID format | `550e8400-e29b-41d4-a716-446655440000` |
-| `<money>` | Currency | `$1,234.56`, `$0.00` |
+| Pattern    | Matches     | Example                                |
+| ---------- | ----------- | -------------------------------------- |
+| `<any>`    | Any value   | `42`, `foo`, `2025-01-01`              |
+| `<number>` | Integers    | `42`, `1`, `999`                       |
+| `<date>`   | YYYY-MM-DD  | `2025-11-23`                           |
+| `<uuid>`   | UUID format | `550e8400-e29b-41d4-a716-446655440000` |
+| `<money>`  | Currency    | `$1,234.56`, `$0.00`                   |
 
 ### Example
 
 ```markdown
 Expected:
 ```
+
 Account created successfully
 ID: <number>
 Name: My Account
 Balance: <money>
+
 ```
 
 Actual:
 ```
+
 Account created successfully
 ID: 42
 Name: My Account
 Balance: $1,000.00
+
 ```
 
 Result: ✅ PASS - `<number>` matches `42`, `<money>` matches `$1,000.00`
@@ -151,6 +163,7 @@ go test -v ./tests/usage/ -run "TestUsageDocumentation/01-account-management.md"
 ### In CI/CD
 
 Usage tests run automatically in GitHub Actions:
+
 - On every push to `main` or `develop`
 - On every pull request
 - Results are uploaded as artifacts
@@ -191,7 +204,7 @@ export FINTRACK_DB_URL="postgresql://<redacted>@localhost:5432/fintrack_test"
 
 ## Example Test Structure
 
-```markdown
+````markdown
 # Feature Area Usage Tests
 
 Brief overview of what this file tests.
@@ -199,26 +212,32 @@ Brief overview of what this file tests.
 ---
 
 ## Test: Happy path scenario
+
 **Purpose:** Brief description of what this validates
 
 ### Setup
+
 ```bash
 # Setup commands here
 ```
+````
 
 ### Execute
+
 ```bash
 fintrack command --flags
 ```
 
 ### Expected Output
+
 ```
 Output with <wildcards>
 ```
 
 ### Actual Output (auto-updated)
+
 ```
-(Auto-generated)
+
 ```
 
 ✅/❌ STATUS (last run: YYYY-MM-DD)
@@ -226,6 +245,7 @@ Output with <wildcards>
 ---
 
 ## Test: Error case
+
 **Purpose:** Verify error handling
 
 [... similar structure ...]
@@ -235,6 +255,7 @@ Output with <wildcards>
 ## Notes
 
 Any relevant notes about these tests, gotchas, or maintenance tips.
+
 ```
 
 ## Maintenance
@@ -311,3 +332,5 @@ See:
 - Project guidance: `/.claude/CLAUDE.md`
 - Integration tests: `/tests/integration/`
 - Example tests: `/tests/usage/01-account-management.md`
+
+```

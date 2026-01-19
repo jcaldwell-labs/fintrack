@@ -105,6 +105,11 @@ func newTransactionListCmd() *cobra.Command {
 
 			// Table format
 			table := output.NewTable("ID", "DATE", "AMOUNT", "TYPE", "PAYEE", "CATEGORY", "ACCOUNT")
+
+			// Track totals for summary
+			var incomeCents, expenseCents int64
+			txCount := len(transactions)
+
 			for _, tx := range transactions {
 				categoryName := ""
 				if tx.Category != nil {
@@ -117,14 +122,32 @@ func newTransactionListCmd() *cobra.Command {
 				table.AddRow(
 					fmt.Sprintf("%d", tx.ID),
 					tx.Date.Format("2006-01-02"),
-					formatAmount(tx.Amount),
+					formatAmountCents(tx.AmountCents),
 					tx.Type,
 					tx.Payee,
 					categoryName,
 					accountName,
 				)
+
+				// Track income vs expenses
+				if tx.AmountCents > 0 {
+					incomeCents += tx.AmountCents
+				} else {
+					expenseCents += tx.AmountCents
+				}
 			}
 			table.Print()
+
+			// Print summary
+			if txCount > 0 {
+				netCents := incomeCents + expenseCents
+				fmt.Printf("\nSummary: %d transactions | Income: %s | Expenses: %s | Net: %s\n",
+					txCount,
+					output.FormatCurrencyCents(incomeCents, "USD"),
+					output.FormatCurrencyCents(-expenseCents, "USD"),
+					output.FormatCurrencyCents(netCents, "USD"),
+				)
+			}
 
 			return nil
 		},
@@ -203,9 +226,12 @@ func newTransactionAddCmd() *cobra.Command {
 				}
 			}
 
+			// Convert dollars to cents for storage
+			amountCents := models.DollarsToCents(amount)
+
 			tx := &models.Transaction{
 				AccountID:   accountID,
-				Amount:      amount,
+				AmountCents: amountCents,
 				Payee:       payee,
 				Description: description,
 				Type:        txType,
@@ -228,7 +254,7 @@ func newTransactionAddCmd() *cobra.Command {
 
 			fmt.Printf("✓ Created transaction #%d\n", tx.ID)
 			fmt.Printf("Date: %s\n", tx.Date.Format("2006-01-02"))
-			fmt.Printf("Amount: %s\n", formatAmount(tx.Amount))
+			fmt.Printf("Amount: %s\n", formatAmountCents(tx.AmountCents))
 			fmt.Printf("Type: %s\n", tx.Type)
 			if tx.Payee != "" {
 				fmt.Printf("Payee: %s\n", tx.Payee)
@@ -239,7 +265,7 @@ func newTransactionAddCmd() *cobra.Command {
 	}
 
 	cmd.Flags().UintVar(&accountID, "account", 0, "Account ID (required)")
-	cmd.Flags().Float64VarP(&amount, "amount", "a", 0, "Transaction amount (negative for expense, positive for income)")
+	cmd.Flags().Float64VarP(&amount, "amount", "a", 0, "Transaction amount in dollars (negative for expense, positive for income)")
 	cmd.Flags().UintVar(&categoryID, "category", 0, "Category ID")
 	cmd.Flags().StringVarP(&payee, "payee", "p", "", "Payee name")
 	cmd.Flags().StringVarP(&description, "description", "d", "", "Description")
@@ -278,7 +304,7 @@ func newTransactionShowCmd() *cobra.Command {
 			// Detailed output
 			fmt.Printf("Transaction #%d\n", tx.ID)
 			fmt.Printf("Date: %s\n", tx.Date.Format("2006-01-02"))
-			fmt.Printf("Amount: %s\n", formatAmount(tx.Amount))
+			fmt.Printf("Amount: %s\n", formatAmountCents(tx.AmountCents))
 			fmt.Printf("Type: %s\n", tx.Type)
 			if tx.Account != nil {
 				fmt.Printf("Account: %s (#%d)\n", tx.Account.Name, tx.AccountID)
@@ -334,7 +360,7 @@ func newTransactionUpdateCmd() *cobra.Command {
 
 			// Update fields if provided
 			if cmd.Flags().Changed("amount") {
-				tx.Amount = amount
+				tx.AmountCents = models.DollarsToCents(amount)
 			}
 			if cmd.Flags().Changed("category") {
 				tx.CategoryID = &categoryID
@@ -382,7 +408,7 @@ func newTransactionUpdateCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().Float64VarP(&amount, "amount", "a", 0, "New amount")
+	cmd.Flags().Float64VarP(&amount, "amount", "a", 0, "New amount in dollars")
 	cmd.Flags().UintVar(&categoryID, "category", 0, "New category ID")
 	cmd.Flags().StringVarP(&payee, "payee", "p", "", "New payee")
 	cmd.Flags().StringVarP(&description, "description", "d", "", "New description")
@@ -417,10 +443,11 @@ func newTransactionDeleteCmd() *cobra.Command {
 	return cmd
 }
 
-// Helper function to format amount with sign
-func formatAmount(amount float64) string {
-	if amount >= 0 {
-		return fmt.Sprintf("+%.2f", amount)
+// Helper function to format amount with sign (for cents)
+func formatAmountCents(cents int64) string {
+	dollars := float64(cents) / 100
+	if cents >= 0 {
+		return fmt.Sprintf("+%.2f", dollars)
 	}
-	return fmt.Sprintf("%.2f", amount)
+	return fmt.Sprintf("%.2f", dollars)
 }
