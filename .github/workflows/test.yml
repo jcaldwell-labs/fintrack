@@ -2,9 +2,9 @@ name: Test & Coverage
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:
@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        go-version: ['1.21', '1.22']
+        go-version: ["1.23"]
 
     services:
       postgres:
@@ -31,156 +31,156 @@ jobs:
           - 5432:5432
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v6
-      with:
-        go-version: ${{ matrix.go-version }}
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ matrix.go-version }}
 
-    - name: Cache Go modules
-      uses: actions/cache@v5
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
+      - name: Cache Go modules
+        uses: actions/cache@v5
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
 
-    - name: Install dependencies
-      run: |
-        go mod download
-        go mod verify
+      - name: Install dependencies
+        run: |
+          go mod download
+          go mod verify
 
-    - name: Run go fmt
-      run: |
-        fmt_output=$(go fmt ./...)
-        if [ -n "$fmt_output" ]; then
-          echo "The following files need formatting:"
-          echo "$fmt_output"
-          exit 1
-        fi
-
-    - name: Run go vet
-      run: go vet ./...
-
-    - name: Run unit tests
-      run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
-
-    - name: Run integration tests
-      env:
-        TEST_DB_USER: test_user
-        TEST_DB_PASS: test_password
-      run: |
-        # Build URL with credentials (pattern broken across variables)
-        SEP=":"
-        AT="@"
-        export FINTRACK_DB_URL="postgresql://${TEST_DB_USER}${SEP}${TEST_DB_PASS}${AT}localhost:5432/fintrack_test?sslmode=disable"
-        if [ -d "tests/integration" ] && [ "$(ls -A tests/integration/*.go 2>/dev/null)" ]; then
-          go test -v -tags=integration ./tests/integration/...
-        else
-          echo "No integration tests found, skipping..."
-        fi
-
-    - name: Build binary for usage tests
-      run: make build
-
-    - name: Run usage documentation tests
-      env:
-        TEST_DB_USER: test_user
-        TEST_DB_PASS: test_password
-      run: |
-        # Build URL with credentials (pattern broken across variables)
-        SEP=":"
-        AT="@"
-        export FINTRACK_DB_URL="postgresql://${TEST_DB_USER}${SEP}${TEST_DB_PASS}${AT}localhost:5432/fintrack_test?sslmode=disable"
-        echo "Running usage documentation tests..."
-        go test -v ./tests/usage/ || echo "⚠️  Some usage tests failed - check for regressions"
-
-    - name: Upload usage test results
-      if: always() && matrix.go-version == '1.21'
-      uses: actions/upload-artifact@v4
-      with:
-        name: usage-test-results
-        path: tests/usage/*.md
-
-    - name: Calculate coverage
-      run: |
-        total_coverage=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
-        echo "Total coverage: $total_coverage%"
-        echo "COVERAGE=$total_coverage" >> $GITHUB_ENV
-
-    - name: Check coverage threshold
-      run: |
-        # Current threshold set to 45% - gradually increase as more tests are added
-        # Target: 60% for core packages, 80% overall long-term
-        threshold=33.0
-        if (( $(echo "$COVERAGE < $threshold" | bc -l) )); then
-          echo "❌ Coverage $COVERAGE% is below $threshold% threshold"
-          exit 1
-        else
-          echo "✅ Coverage $COVERAGE% meets $threshold% threshold"
-          # Show progress toward ideal threshold
-          ideal_threshold=60.0
-          if (( $(echo "$COVERAGE < $ideal_threshold" | bc -l) )); then
-            remaining=$(echo "$ideal_threshold - $COVERAGE" | bc)
-            echo "📊 Progress: $(echo "scale=1; $COVERAGE * 100 / $ideal_threshold" | bc)% toward $ideal_threshold% target"
-            echo "⚠️  Need $remaining% more coverage to reach target"
+      - name: Run go fmt
+        run: |
+          fmt_output=$(go fmt ./...)
+          if [ -n "$fmt_output" ]; then
+            echo "The following files need formatting:"
+            echo "$fmt_output"
+            exit 1
           fi
-        fi
 
-    - name: Generate coverage HTML report
-      if: matrix.go-version == '1.21'
-      run: go tool cover -html=coverage.out -o coverage.html
+      - name: Run go vet
+        run: go vet ./...
 
-    - name: Upload coverage to Codecov
-      if: matrix.go-version == '1.21'
-      uses: codecov/codecov-action@v5
-      with:
-        files: ./coverage.out
-        flags: unittests
-        name: codecov-fintrack
+      - name: Run unit tests
+        run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
 
-    - name: Upload coverage report
-      if: matrix.go-version == '1.21'
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-report
-        path: coverage.html
+      - name: Run integration tests
+        env:
+          TEST_DB_USER: test_user
+          TEST_DB_PASS: test_password
+        run: |
+          # Build URL with credentials (pattern broken across variables)
+          SEP=":"
+          AT="@"
+          export FINTRACK_DB_URL="postgresql://${TEST_DB_USER}${SEP}${TEST_DB_PASS}${AT}localhost:5432/fintrack_test?sslmode=disable"
+          if [ -d "tests/integration" ] && [ "$(ls -A tests/integration/*.go 2>/dev/null)" ]; then
+            go test -v -tags=integration ./tests/integration/...
+          else
+            echo "No integration tests found, skipping..."
+          fi
+
+      - name: Build binary for usage tests
+        run: make build
+
+      - name: Run usage documentation tests
+        env:
+          TEST_DB_USER: test_user
+          TEST_DB_PASS: test_password
+        run: |
+          # Build URL with credentials (pattern broken across variables)
+          SEP=":"
+          AT="@"
+          export FINTRACK_DB_URL="postgresql://${TEST_DB_USER}${SEP}${TEST_DB_PASS}${AT}localhost:5432/fintrack_test?sslmode=disable"
+          echo "Running usage documentation tests..."
+          go test -v ./tests/usage/ || echo "⚠️  Some usage tests failed - check for regressions"
+
+      - name: Upload usage test results
+        if: always() && matrix.go-version == '1.23'
+        uses: actions/upload-artifact@v4
+        with:
+          name: usage-test-results
+          path: tests/usage/*.md
+
+      - name: Calculate coverage
+        run: |
+          total_coverage=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+          echo "Total coverage: $total_coverage%"
+          echo "COVERAGE=$total_coverage" >> $GITHUB_ENV
+
+      - name: Check coverage threshold
+        run: |
+          # Current threshold set to 45% - gradually increase as more tests are added
+          # Target: 60% for core packages, 80% overall long-term
+          threshold=33.0
+          if (( $(echo "$COVERAGE < $threshold" | bc -l) )); then
+            echo "❌ Coverage $COVERAGE% is below $threshold% threshold"
+            exit 1
+          else
+            echo "✅ Coverage $COVERAGE% meets $threshold% threshold"
+            # Show progress toward ideal threshold
+            ideal_threshold=60.0
+            if (( $(echo "$COVERAGE < $ideal_threshold" | bc -l) )); then
+              remaining=$(echo "$ideal_threshold - $COVERAGE" | bc)
+              echo "📊 Progress: $(echo "scale=1; $COVERAGE * 100 / $ideal_threshold" | bc)% toward $ideal_threshold% target"
+              echo "⚠️  Need $remaining% more coverage to reach target"
+            fi
+          fi
+
+      - name: Generate coverage HTML report
+        if: matrix.go-version == '1.23'
+        run: go tool cover -html=coverage.out -o coverage.html
+
+      - name: Upload coverage to Codecov
+        if: matrix.go-version == '1.23'
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage.out
+          flags: unittests
+          name: codecov-fintrack
+
+      - name: Upload coverage report
+        if: matrix.go-version == '1.23'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.html
 
   lint:
     name: Lint
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v6
-      with:
-        go-version: '1.21'
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.23"
 
-    - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v3
-      with:
-        version: latest
-        args: --timeout=5m
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          args: --timeout=5m
 
   security:
     name: Security Scan
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Run Gosec Security Scanner
-      uses: securego/gosec@master
-      with:
-        args: '-no-fail -fmt sarif -out results.sarif ./...'
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@master
+        with:
+          args: "-no-fail -fmt sarif -out results.sarif ./..."
 
-    - name: Upload SARIF file
-      uses: github/codeql-action/upload-sarif@v4
-      with:
-        sarif_file: results.sarif
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: results.sarif
